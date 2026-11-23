@@ -24,7 +24,8 @@ const PROCESS_STEPS = [
       'Complete your GPA, semester, major, and skills so the platform recommends verified internships, competitions, and scholarships.',
     stepOffsetClass: 'lg:mt-0',
     to: '/profile',
-    highlight: false,
+    image: '/images/step-01.jpg',
+    hoverBarClass: '-translate-y-1 bg-[#4f54d8] text-white shadow-lg shadow-indigo-500/30',
   },
   {
     number: '02',
@@ -34,7 +35,8 @@ const PROCESS_STEPS = [
       'Measure how well your academic profile and skills fit official requirements using category-specific matching rules.',
     stepOffsetClass: 'lg:mt-10',
     to: '/discover',
-    highlight: false,
+    image: '/images/step-02.jpg',
+    hoverBarClass: '-translate-y-1 bg-[#059669] text-white shadow-lg shadow-emerald-500/30',
   },
   {
     number: '03',
@@ -44,7 +46,8 @@ const PROCESS_STEPS = [
       'For internships, LLM-powered analysis detects unfulfilled qualifications and recommends priority skills plus portfolio project ideas.',
     stepOffsetClass: 'lg:mt-20',
     to: '/analyze',
-    highlight: true,
+    image: '/images/step-03.jpg',
+    hoverBarClass: '-translate-y-1 bg-[#585ce5] text-white shadow-lg shadow-indigo-500/30',
   },
   {
     number: '04',
@@ -54,7 +57,8 @@ const PROCESS_STEPS = [
       'Prepare CVs, motivation letters, and document checklists before submitting, then monitor statuses and upcoming deadlines.',
     stepOffsetClass: 'lg:mt-30',
     to: '/tracker',
-    highlight: false,
+    image: '/images/step-04.jpg',
+    hoverBarClass: '-translate-y-1 bg-[#0d9488] text-white shadow-lg shadow-teal-500/30',
   },
 ]
 
@@ -98,6 +102,7 @@ export function WelcomePage() {
   const navigate = useNavigate()
   const { opportunities, profile, theme, setTheme } = useCareerku()
   const [hoveredCard, setHoveredCard] = useState<number | null>(null)
+  const [hoveredStep, setHoveredStep] = useState<number | null>(null)
   const [hoveredVoice, setHoveredVoice] = useState<number | null>(null)
 
   const highMatchCount = opportunities.filter((o) => o.match.tier === 'high').length
@@ -108,7 +113,7 @@ export function WelcomePage() {
       {/* TOP MINIMAL NAVBAR (Spintip Clean Bar)                            */}
       {/* ================================================================= */}
       <header className="sticky top-0 z-40 bg-[var(--bg-card)]/95 backdrop-blur-md">
-        <div className="mx-auto flex max-w-[1380px] items-center justify-between gap-4 px-5 py-4 sm:px-8">
+        <div className="flex w-full items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
           <button
             type="button"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
@@ -160,7 +165,7 @@ export function WelcomePage() {
       {/* ================================================================= */}
       {/* SECTION 1: Spintip-Style Full Rounded Photo Hero                  */}
       {/* ================================================================= */}
-      <section className="mx-auto max-w-[1380px] px-4 pb-6 sm:px-6">
+      <section className="w-full px-4 pb-6 sm:px-6 lg:px-8">
         <ScrollReveal distancePx={20} scaleFrom={0.985} blur={false}>
           <div className="relative flex h-[calc(100vh-92px)] min-h-[540px] max-h-[760px] w-full flex-col justify-between overflow-hidden rounded-[32px]">
             <img
@@ -249,7 +254,7 @@ export function WelcomePage() {
         </ScrollReveal>
       </section>
 
-      <main className="mx-auto max-w-6xl px-4 pb-12 sm:px-8">
+      <main className="w-full px-4 pb-10 sm:px-6 lg:px-8">
         {/* ================================================================= */}
         {/* SECTION 2: Editorial Statement (Lumóra Two-Tone Typography)       */}
         {/* ================================================================= */}
@@ -262,10 +267,12 @@ export function WelcomePage() {
             </ScrollReveal>
             <ScrollReveal delayMs={120} distancePx={32} className="lg:col-span-9">
               <h2 className="text-2xl font-medium leading-[1.3] tracking-tight text-[var(--text-primary)] sm:text-4xl">
-                We believe student career readiness isn’t built from scattered posts, but{' '}
+                We believe career readiness isn’t built from scattered listings, but from clear
+                direction.{' '}
                 <span className="text-[var(--text-muted)]">
-                  / from clear evaluation — helping undergraduates understand requirements, close
-                  skill gaps, and prepare with confidence.
+                  Careerku brings internships, scholarships, and competitions into one place,
+                  helping students understand requirements, close skill gaps, and apply with
+                  confidence.
                 </span>
               </h2>
             </ScrollReveal>
@@ -560,51 +567,122 @@ export function WelcomePage() {
           </div>
 
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-4 lg:gap-0">
-            {PROCESS_STEPS.map((step, idx) => (
-              <ScrollReveal
-                key={step.number}
-                delayMs={idx * 110}
-                distancePx={34}
-                className="flex"
-              >
-                <button
-                  type="button"
-                  onClick={() => navigate(step.to)}
-                  className={`group flex w-full cursor-pointer flex-col justify-between text-left transition-colors hover:bg-[var(--bg-sheet)]/70 ${
-                    idx > 0 ? 'lg:border-l lg:border-[var(--border-subtle)]' : ''
-                  } rounded-2xl border border-[var(--border-subtle)] p-5 lg:rounded-none lg:border-y-0 lg:border-r-0 lg:px-5 lg:py-4`}
+            {PROCESS_STEPS.map((step, idx) => {
+              const isHovered = hoveredStep === idx
+
+              return (
+                <ScrollReveal
+                  key={step.number}
+                  delayMs={idx * 110}
+                  distancePx={34}
+                  className="flex"
                 >
-                  <div className="mb-6 flex flex-col justify-between lg:min-h-[210px]">
+                  <button
+                    type="button"
+                    onMouseEnter={() => setHoveredStep(idx)}
+                    onMouseLeave={() => setHoveredStep(null)}
+                    onClick={() => navigate(step.to)}
+                    className={`group relative flex w-full cursor-pointer flex-col justify-between overflow-hidden text-left transition-all duration-300 ${
+                      idx > 0 ? 'lg:border-l lg:border-[var(--border-subtle)]' : ''
+                    } rounded-2xl border border-[var(--border-subtle)] p-5 lg:rounded-none lg:border-y-0 lg:border-r-0 lg:px-6 lg:py-6`}
+                  >
+                    {/* Resting Dot-Grid & Watermark + Full-Column Real Photo Hover Reveal */}
                     <div
-                      className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold shadow-xs transition-transform group-hover:translate-x-0.5 ${step.stepOffsetClass} ${
-                        step.highlight
-                          ? 'bg-[#585ce5] text-white'
-                          : 'bg-[#1c1e21] text-white dark:bg-[#f1f2ea] dark:text-[#181a18]'
-                      }`}
+                      aria-hidden="true"
+                      className="pointer-events-none absolute inset-0 overflow-hidden"
                     >
-                      <span>{step.barLabel}</span>
-                      <ArrowUpRight className="h-3.5 w-3.5 opacity-80" />
+                      <div
+                        className={`absolute inset-x-0 top-0 h-[240px] transition-opacity duration-300 ${
+                          isHovered ? 'opacity-0' : 'opacity-35 dark:opacity-25'
+                        }`}
+                        style={{
+                          backgroundImage:
+                            'radial-gradient(var(--border-strong) 1px, transparent 1px)',
+                          backgroundSize: '18px 18px',
+                        }}
+                      />
+                      <span
+                        className={`pointer-events-none absolute right-5 top-28 select-none text-7xl font-bold tracking-tighter transition-all duration-500 ${
+                          isHovered
+                            ? 'translate-y-2 opacity-0'
+                            : 'text-[var(--text-primary)]/[0.045]'
+                        }`}
+                      >
+                        {step.number}
+                      </span>
+
+                      <img
+                        src={step.image}
+                        alt=""
+                        className={`h-full w-full object-cover transition-all duration-700 ease-out ${
+                          isHovered ? 'scale-105 opacity-100' : 'scale-100 opacity-0'
+                        }`}
+                      />
+                      <div
+                        className={`absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/25 transition-opacity duration-400 ${
+                          isHovered ? 'opacity-100' : 'opacity-0'
+                        }`}
+                      />
                     </div>
 
-                    <span className="mt-6 hidden text-[11px] font-semibold text-[var(--text-muted)] lg:block">
-                      {step.number}
-                    </span>
-                  </div>
+                    <div className="relative z-10 mb-6 flex flex-col justify-between lg:min-h-[210px]">
+                      <div
+                        className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold shadow-xs transition-all duration-300 ease-out ${step.stepOffsetClass} ${
+                          isHovered
+                            ? step.hoverBarClass
+                            : 'bg-[#1c1e21] text-white dark:bg-[#f1f2ea] dark:text-[#181a18]'
+                        }`}
+                      >
+                        <span>{step.barLabel}</span>
+                        <ArrowUpRight
+                          className={`h-3.5 w-3.5 transition-transform duration-300 ${
+                            isHovered ? 'translate-x-0.5 -translate-y-0.5 opacity-100' : 'opacity-80'
+                          }`}
+                        />
+                      </div>
 
-                  <div className="border-t border-[var(--border-subtle)] pt-4">
-                    <div className="mb-1 flex items-center justify-between">
-                      <h3 className="text-sm font-bold text-[var(--text-primary)]">{step.title}</h3>
-                      <span className="text-[11px] font-semibold text-[var(--text-muted)] lg:hidden">
+                      <span
+                        className={`mt-6 hidden text-[11px] font-semibold transition-colors duration-300 lg:block ${
+                          isHovered ? 'text-white/85' : 'text-[var(--text-muted)]'
+                        }`}
+                      >
                         {step.number}
                       </span>
                     </div>
-                    <p className="text-xs leading-relaxed text-[var(--text-secondary)]">
-                      {step.description}
-                    </p>
-                  </div>
-                </button>
-              </ScrollReveal>
-            ))}
+
+                    <div
+                      className={`relative z-10 border-t pt-4 transition-colors duration-300 ${
+                        isHovered ? 'border-white/20' : 'border-[var(--border-subtle)]'
+                      }`}
+                    >
+                      <div className="mb-1 flex items-center justify-between">
+                        <h3
+                          className={`text-sm font-bold transition-colors duration-300 ${
+                            isHovered ? 'text-white' : 'text-[var(--text-primary)]'
+                          }`}
+                        >
+                          {step.title}
+                        </h3>
+                        <span
+                          className={`text-[11px] font-semibold transition-colors duration-300 lg:hidden ${
+                            isHovered ? 'text-white/85' : 'text-[var(--text-muted)]'
+                          }`}
+                        >
+                          {step.number}
+                        </span>
+                      </div>
+                      <p
+                        className={`text-xs leading-relaxed transition-colors duration-300 ${
+                          isHovered ? 'text-white/85' : 'text-[var(--text-secondary)]'
+                        }`}
+                      >
+                        {step.description}
+                      </p>
+                    </div>
+                  </button>
+                </ScrollReveal>
+              )
+            })}
           </div>
         </section>
 
