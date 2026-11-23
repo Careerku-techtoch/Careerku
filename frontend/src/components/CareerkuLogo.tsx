@@ -64,7 +64,11 @@ export function CareerkuLogo({
   )
 
   return (
-    <span className={`inline-flex items-center gap-2 ${className}`}>
+    <span
+      className={`inline-flex items-center gap-2 ${
+        inverted ? 'text-white' : 'text-[var(--text-primary)]'
+      } ${className}`}
+    >
       {badge ? (
         <span
           className={`flex shrink-0 items-center justify-center rounded-full shadow-xs ${dims.badge} ${
@@ -80,13 +84,7 @@ export function CareerkuLogo({
       )}
 
       {showWordmark && (
-        <span
-          className={`font-bold tracking-tight ${dims.text} ${
-            inverted ? 'text-white' : 'text-[var(--text-primary)]'
-          }`}
-        >
-          Careerku
-        </span>
+        <span className={`font-bold tracking-tight ${dims.text}`}>Careerku</span>
       )}
     </span>
   )

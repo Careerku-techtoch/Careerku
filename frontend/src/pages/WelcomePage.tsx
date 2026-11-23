@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   ArrowRight,
@@ -119,6 +119,14 @@ export function WelcomePage() {
   const { opportunities, profile, theme, setTheme } = useCareerku()
   const [hoveredCard, setHoveredCard] = useState<number | null>(null)
   const [hoveredVoice, setHoveredVoice] = useState<number | null>(null)
+  const [isScrolled, setIsScrolled] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 36)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   const highMatchCount = opportunities.filter((o) => o.match.tier === 'high').length
 
@@ -187,32 +195,58 @@ export function WelcomePage() {
   return (
     <div className="min-h-screen overflow-x-clip bg-[var(--bg-card)] text-[var(--text-primary)]">
       {/* ================================================================= */}
-      {/* TOP MINIMAL NAVBAR (Spintip Clean Bar)                            */}
+      {/* TOP FLOATING NAVBAR (Transparent Over Full-Bleed Hero)            */}
       {/* ================================================================= */}
-      <header className="sticky top-0 z-40 bg-[var(--bg-card)]/95 backdrop-blur-md">
-        <div className="flex w-full items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+      <header
+        className={`fixed inset-x-0 top-0 z-40 transition-all duration-300 ${
+          isScrolled
+            ? 'border-b border-[var(--border-subtle)]/70 bg-[var(--bg-card)]/90 shadow-xs backdrop-blur-md'
+            : 'bg-transparent'
+        }`}
+      >
+        <div className="flex w-full items-center justify-between gap-4 px-5 py-4 sm:px-8 lg:px-10">
           <button
             type="button"
             onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
             className="cursor-pointer"
           >
-            <CareerkuLogo size="md" showWordmark />
+            <CareerkuLogo
+              size="md"
+              showWordmark
+              className={!isScrolled ? '!text-[#181a1d]' : ''}
+            />
           </button>
 
           <nav
             aria-label="Main navigation"
-            className="hidden items-center gap-7 text-[13px] font-medium text-[var(--text-primary)]/85 md:flex"
+            className={`hidden items-center gap-7 text-[13px] font-medium transition-colors duration-300 md:flex ${
+              isScrolled
+                ? 'text-[var(--text-primary)]/85'
+                : 'text-[#181a1d]/85'
+            }`}
           >
-            <a href="#about" className="hover:text-[var(--text-primary)]">
+            <a
+              href="#about"
+              className={isScrolled ? 'hover:text-[var(--text-primary)]' : 'hover:text-[#181a1d]'}
+            >
               About
             </a>
-            <a href="#features" className="hover:text-[var(--text-primary)]">
+            <a
+              href="#features"
+              className={isScrolled ? 'hover:text-[var(--text-primary)]' : 'hover:text-[#181a1d]'}
+            >
               Features
             </a>
-            <a href="#process" className="hover:text-[var(--text-primary)]">
+            <a
+              href="#process"
+              className={isScrolled ? 'hover:text-[var(--text-primary)]' : 'hover:text-[#181a1d]'}
+            >
               How It Works
             </a>
-            <a href="#voices" className="hover:text-[var(--text-primary)]">
+            <a
+              href="#voices"
+              className={isScrolled ? 'hover:text-[var(--text-primary)]' : 'hover:text-[#181a1d]'}
+            >
               Voices
             </a>
           </nav>
@@ -222,7 +256,11 @@ export function WelcomePage() {
               type="button"
               onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')}
               aria-label="Toggle theme"
-              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--bg-sheet)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+              className={`flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border transition-all duration-300 ${
+                isScrolled
+                  ? 'border-[var(--border-subtle)] bg-[var(--bg-sheet)] text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
+                  : 'border-white/60 bg-white/90 text-[#181a1d] shadow-xs backdrop-blur-md hover:bg-white'
+              }`}
             >
               {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
             </button>
@@ -230,7 +268,11 @@ export function WelcomePage() {
             <button
               type="button"
               onClick={() => navigate('/discover')}
-              className="careerku-btn-primary inline-flex cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold"
+              className={`inline-flex cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold transition-all duration-300 ${
+                isScrolled
+                  ? 'careerku-btn-primary'
+                  : 'bg-[#181a1d] text-white shadow-sm hover:bg-[#111316]'
+              }`}
             >
               <span>Get Started</span>
               <ArrowRight className="h-3.5 w-3.5" />
@@ -240,94 +282,90 @@ export function WelcomePage() {
       </header>
 
       {/* ================================================================= */}
-      {/* SECTION 1: Spintip-Style Full Rounded Photo Hero                  */}
+      {/* SECTION 1: Full-Bleed Edge-to-Edge Hero (Extends Behind Navbar)   */}
       {/* ================================================================= */}
-      <section className="w-full px-4 pb-6 sm:px-6 lg:px-8">
-        <ScrollReveal distancePx={20} scaleFrom={0.985} blur={false}>
-          <div className="relative flex h-[calc(100vh-92px)] min-h-[540px] max-h-[760px] w-full flex-col justify-between overflow-hidden rounded-[32px]">
-            <img
-              src="/images/hero-campus.jpg"
-              alt="Undergraduate student in a sunlit modern campus courtyard"
-              className="pointer-events-none absolute inset-0 h-full w-full -scale-x-100 object-cover object-[center_20%]"
-            />
+      <section className="relative flex h-screen min-h-[600px] max-h-[920px] w-full flex-col justify-between overflow-hidden pt-20 sm:pt-24">
+        <img
+          src="/images/hero-campus.jpg"
+          alt="Undergraduate student in a sunlit modern campus courtyard"
+          className="pointer-events-none absolute inset-0 h-full w-full -scale-x-100 object-cover object-[center_20%]"
+        />
 
-            {/* Top-Left: Follow Us & Crisp White Social Icon Circles */}
-            <ScrollReveal delayMs={140} distancePx={18} className="relative z-10 p-7 sm:p-10 lg:p-12">
-              <p className="mb-3 text-base font-semibold tracking-tight text-[#181a1d] sm:text-lg">
-                Follow us
-              </p>
-              <div className="flex items-center gap-2">
-                <a
-                  href="#about"
-                  aria-label="Instagram"
-                  title="Instagram"
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#181a1d] shadow-sm transition-transform hover:scale-105"
-                >
-                  <svg
-                    viewBox="0 0 24 24"
-                    className="h-4.5 w-4.5"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-                    <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                    <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-                  </svg>
-                </a>
-                <a
-                  href="#about"
-                  aria-label="X"
-                  title="X"
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#181a1d] shadow-sm transition-transform hover:scale-105"
-                >
-                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
-                    <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-                  </svg>
-                </a>
-                <a
-                  href="#process"
-                  aria-label="LinkedIn"
-                  title="LinkedIn"
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#181a1d] shadow-sm transition-transform hover:scale-105"
-                >
-                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
-                    <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
-                  </svg>
-                </a>
-                <a
-                  href="#voices"
-                  aria-label="GitHub"
-                  title="GitHub"
-                  className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#181a1d] shadow-sm transition-transform hover:scale-105"
-                >
-                  <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="currentColor">
-                    <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z" />
-                  </svg>
-                </a>
-              </div>
-            </ScrollReveal>
-
-            {/* Bottom-Left: Bold Two-Line Headline + Concise Description */}
-            <ScrollReveal
-              delayMs={260}
-              distancePx={24}
-              className="relative z-10 max-w-xl p-7 sm:p-10 lg:p-12"
+        {/* Top-Left: Follow Us & Crisp White Social Icon Circles */}
+        <ScrollReveal delayMs={140} distancePx={18} className="relative z-10 px-6 pt-4 sm:px-10 sm:pt-6 lg:px-12">
+          <p className="mb-3 text-base font-semibold tracking-tight text-[#181a1d] sm:text-lg">
+            Follow us
+          </p>
+          <div className="flex items-center gap-2">
+            <a
+              href="#about"
+              aria-label="Instagram"
+              title="Instagram"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#181a1d] shadow-sm transition-transform hover:scale-105"
             >
-              <h1 className="text-5xl font-bold leading-[0.98] tracking-[-0.035em] text-[#181a1d] sm:text-6xl lg:text-[72px]">
-                Match Smarter.
-                <br />
-                Grow Faster.
-              </h1>
-              <p className="mt-4 max-w-md text-xs font-medium leading-relaxed text-[#181a1d]/80 sm:text-sm">
-                Careerku is an AI-powered career platform for undergraduate students that brings
-                together internships, competitions, and scholarships with skill gap analysis and
-                application tracking.
-              </p>
-            </ScrollReveal>
+              <svg
+                viewBox="0 0 24 24"
+                className="h-4.5 w-4.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+              </svg>
+            </a>
+            <a
+              href="#about"
+              aria-label="X"
+              title="X"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#181a1d] shadow-sm transition-transform hover:scale-105"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+              </svg>
+            </a>
+            <a
+              href="#process"
+              aria-label="LinkedIn"
+              title="LinkedIn"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#181a1d] shadow-sm transition-transform hover:scale-105"
+            >
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+                <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
+              </svg>
+            </a>
+            <a
+              href="#voices"
+              aria-label="GitHub"
+              title="GitHub"
+              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#181a1d] shadow-sm transition-transform hover:scale-105"
+            >
+              <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="currentColor">
+                <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z" />
+              </svg>
+            </a>
           </div>
+        </ScrollReveal>
+
+        {/* Bottom-Left: Bold Two-Line Headline + Concise Description */}
+        <ScrollReveal
+          delayMs={260}
+          distancePx={24}
+          className="relative z-10 max-w-xl px-6 pb-8 sm:px-10 sm:pb-12 lg:px-12 lg:pb-14"
+        >
+          <h1 className="text-5xl font-bold leading-[0.98] tracking-[-0.035em] text-[#181a1d] sm:text-6xl lg:text-[72px]">
+            Match Smarter.
+            <br />
+            Grow Faster.
+          </h1>
+          <p className="mt-4 max-w-md text-xs font-medium leading-relaxed text-[#181a1d]/80 sm:text-sm">
+            Careerku is an AI-powered career platform for undergraduate students that brings
+            together internships, competitions, and scholarships with skill gap analysis and
+            application tracking.
+          </p>
         </ScrollReveal>
       </section>
 
