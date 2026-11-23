@@ -15,52 +15,68 @@ import {
 import { CareerkuLogo, ScrollReveal } from '@/components'
 import { useCareerku } from '@/hooks'
 
-const PROCESS_STEPS = [
+interface ProcessStep {
+  stepLabel: string
+  title: string
+  description: string
+  to: string
+}
+
+const PROCESS_STEPS: readonly ProcessStep[] = [
   {
-    number: '01',
-    barLabel: 'Register & Discover',
-    title: 'Register & Discover',
+    stepLabel: 'Step 1',
+    title: 'Build Profile & Discover',
     description:
-      'Complete your GPA, semester, major, and skills so the platform recommends verified internships, competitions, and scholarships.',
-    stepOffsetClass: 'lg:mt-0',
+      'Enter your GPA, semester, major, and skills to explore verified internships, scholarships, and competitions.',
     to: '/profile',
-    image: '/images/step-01.jpg',
-    hoverBarClass: '-translate-y-1 bg-[#4f54d8] text-white shadow-lg shadow-indigo-500/30',
   },
   {
-    number: '02',
-    barLabel: 'Match',
-    title: 'Rule-Based Match',
+    stepLabel: 'Step 2',
+    title: 'Smart Rule-Based Matching',
     description:
-      'Measure how well your academic profile and skills fit official requirements using category-specific matching rules.',
-    stepOffsetClass: 'lg:mt-10',
+      'The engine checks your profile against official criteria — GPA, semester, major, and skills — for instant fit scores.',
     to: '/discover',
-    image: '/images/step-02.jpg',
-    hoverBarClass: '-translate-y-1 bg-[#059669] text-white shadow-lg shadow-emerald-500/30',
   },
   {
-    number: '03',
-    barLabel: 'Analyze & Improve (AI)',
-    title: 'Analyze & Improve',
+    stepLabel: 'Step 3',
+    title: 'AI Skill Gap Analysis',
     description:
-      'For internships, LLM-powered analysis detects unfulfilled qualifications and recommends priority skills plus portfolio project ideas.',
-    stepOffsetClass: 'lg:mt-20',
+      'LLM-powered analysis highlights unfulfilled internship requirements so you see exactly what to strengthen.',
     to: '/analyze',
-    image: '/images/step-03.jpg',
-    hoverBarClass: '-translate-y-1 bg-[#585ce5] text-white shadow-lg shadow-indigo-500/30',
   },
   {
-    number: '04',
-    barLabel: 'Apply & Track',
-    title: 'Apply & Track',
+    stepLabel: 'Step 4',
+    title: 'Plan Your Next Skill Sprint',
     description:
-      'Prepare CVs, motivation letters, and document checklists before submitting, then monitor statuses and upcoming deadlines.',
-    stepOffsetClass: 'lg:mt-30',
-    to: '/tracker',
-    image: '/images/step-04.jpg',
-    hoverBarClass: '-translate-y-1 bg-[#0d9488] text-white shadow-lg shadow-teal-500/30',
+      'Follow prioritized skill roadmaps and tailored portfolio project ideas to close gaps with clear direction.',
+    to: '/analyze',
   },
-]
+  {
+    stepLabel: 'Step 5',
+    title: 'Track Your Applications',
+    description:
+      'Careerku stores your CVs, checklists, statuses, and deadlines — helping you see real progress over time.',
+    to: '/tracker',
+  },
+] as const
+
+const PROCESS_PHOTOS = [
+  {
+    src: '/images/step-01.jpg',
+    alt: 'Undergraduate students studying with laptops inside a sunlit university library',
+    objectPosition: 'object-center',
+  },
+  {
+    src: '/images/step-02.jpg',
+    alt: 'Clean sunlit minimalist desk with a laptop ready for career research',
+    objectPosition: 'object-center',
+  },
+  {
+    src: '/images/step-04.jpg',
+    alt: 'Minimalist workspace with notebook, pencil, and coffee for application planning',
+    objectPosition: 'object-center',
+  },
+] as const
 
 const STUDENT_VOICES = [
   {
@@ -102,10 +118,71 @@ export function WelcomePage() {
   const navigate = useNavigate()
   const { opportunities, profile, theme, setTheme } = useCareerku()
   const [hoveredCard, setHoveredCard] = useState<number | null>(null)
-  const [hoveredStep, setHoveredStep] = useState<number | null>(null)
   const [hoveredVoice, setHoveredVoice] = useState<number | null>(null)
 
   const highMatchCount = opportunities.filter((o) => o.match.tier === 'high').length
+
+  const renderProcessStepCard = (step: ProcessStep, delayMs: number) => (
+    <ScrollReveal delayMs={delayMs} distancePx={28} className="flex">
+      <button
+        type="button"
+        onClick={() => navigate(step.to)}
+        className="group relative flex min-h-[285px] w-full cursor-pointer flex-col justify-between rounded-[24px] border border-[var(--border-subtle)]/80 bg-[var(--bg-sheet)] p-6 text-left transition-all duration-300 ease-out hover:-translate-y-1.5 hover:border-[var(--border-strong)] hover:shadow-lg sm:min-h-[320px]"
+      >
+        {/* Top-Right Circular Brand Emblem Badge (Spintip Signature) */}
+        <div className="flex justify-end">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#191b1e] text-white transition-all duration-300 group-hover:scale-110 group-hover:bg-[#5257e5] dark:bg-[#f1f2ea] dark:text-[#181a18] dark:group-hover:bg-[#8085ec] dark:group-hover:text-white">
+            <svg
+              viewBox="0 0 48 48"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              aria-hidden="true"
+              className="h-4.5 w-4.5"
+            >
+              <path
+                d="M 26.4 12.6 A 14.5 14.5 0 1 0 35.5 26.5"
+                stroke="currentColor"
+                strokeWidth="6"
+                strokeLinecap="butt"
+              />
+              <path
+                d="M 33.5 7.3 Q 34.4 15.6 42.7 16.5 Q 34.4 17.4 33.5 25.7 Q 32.6 17.4 24.3 16.5 Q 32.6 15.6 33.5 7.3 Z"
+                fill="currentColor"
+              />
+            </svg>
+          </span>
+        </div>
+
+        {/* Bottom-Aligned Step Copy */}
+        <div className="mt-auto pt-10">
+          <p className="text-lg font-bold tracking-tight text-[var(--text-primary)]">
+            {step.stepLabel}
+          </p>
+          <h3 className="mt-2 text-[15px] font-medium leading-[1.3] tracking-[-0.01em] text-[var(--text-primary)]">
+            {step.title}
+          </h3>
+          <p className="mt-2.5 text-xs leading-relaxed text-[var(--text-muted)]">
+            {step.description}
+          </p>
+        </div>
+      </button>
+    </ScrollReveal>
+  )
+
+  const renderProcessPhotoCard = (
+    photo: (typeof PROCESS_PHOTOS)[number],
+    delayMs: number,
+  ) => (
+    <ScrollReveal delayMs={delayMs} distancePx={28} className="flex">
+      <div className="group relative min-h-[285px] w-full overflow-hidden rounded-[24px] bg-[var(--bg-sheet)] sm:min-h-[320px]">
+        <img
+          src={photo.src}
+          alt={photo.alt}
+          className={`absolute inset-0 h-full w-full object-cover ${photo.objectPosition} transition-transform duration-700 ease-out group-hover:scale-105`}
+        />
+      </div>
+    </ScrollReveal>
+  )
 
   return (
     <div className="min-h-screen overflow-x-clip bg-[var(--bg-card)] text-[var(--text-primary)]">
@@ -541,148 +618,96 @@ export function WelcomePage() {
         </section>
 
         {/* ================================================================= */}
-        {/* SECTION 4: Stepped Process Diagram                                */}
+        {/* SECTION 4: How It Works — Spintip Editorial Step-by-Step Bento    */}
         {/* ================================================================= */}
         <section
           id="process"
           className="border-t border-[var(--border-subtle)] py-16 sm:py-24"
         >
-          <div className="mb-12 grid grid-cols-1 items-end gap-6 lg:grid-cols-12">
-            <ScrollReveal delayMs={0} distancePx={20} className="lg:col-span-3">
-              <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
-                — Our Process
+          {/* Top Bar: Dot + Pill ("How It Works") on Left, Bold Display Title on Right */}
+          <ScrollReveal
+            delayMs={0}
+            distancePx={22}
+            className="mb-10 flex flex-wrap items-center justify-between gap-6 sm:mb-14"
+          >
+            <div className="inline-flex items-center gap-1.5">
+              <span
+                aria-hidden="true"
+                className="h-9 w-9 rounded-full bg-[#191b1e] dark:bg-[#f1f2ea]"
+              />
+              <span className="inline-flex h-9 items-center rounded-full bg-[#191b1e] px-5 text-sm font-medium tracking-tight text-[#e3e6ff] dark:bg-[#f1f2ea] dark:text-[#181a18]">
+                How It Works
               </span>
-            </ScrollReveal>
-            <ScrollReveal delayMs={80} distancePx={28} className="lg:col-span-5">
-              <h2 className="text-3xl font-semibold leading-tight tracking-tight text-[var(--text-primary)] sm:text-4xl">
-                Our Process Moves With Clarity.
-              </h2>
-            </ScrollReveal>
-            <ScrollReveal delayMs={160} distancePx={28} className="lg:col-span-4">
-              <p className="text-xs leading-relaxed text-[var(--text-secondary)]">
-                Every stage stays connected: update your student profile once and watch match
-                scores, AI skill gaps, and document checklists adapt immediately.
+            </div>
+
+            <h2 className="text-4xl font-bold leading-none tracking-[-0.035em] text-[var(--text-primary)] sm:text-5xl lg:text-[56px]">
+              What Is Careerku
+            </h2>
+          </ScrollReveal>
+
+          {/* 5-Column × 2-Row Bento Grid */}
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+            {/* Row 1, Cols 1-2: Intro Copy + "How It Works — Step by Step" & Sleek Arrow */}
+            <ScrollReveal
+              delayMs={60}
+              distancePx={24}
+              className="flex flex-col justify-between py-2 sm:col-span-2 lg:col-span-2 lg:pr-6"
+            >
+              <p className="max-w-[390px] text-sm leading-[1.5] text-[var(--text-secondary)] sm:text-[15px]">
+                <strong className="font-semibold text-[var(--text-primary)]">Careerku</strong> is
+                an AI-powered platform for undergraduate students that combines verified
+                opportunities, smart eligibility matching, and skill gap guidance to make career
+                preparation clearer and measurable.
               </p>
-            </ScrollReveal>
-          </div>
 
-          <div className="grid grid-cols-1 gap-4 lg:grid-cols-4 lg:gap-0">
-            {PROCESS_STEPS.map((step, idx) => {
-              const isHovered = hoveredStep === idx
+              <div className="mt-10 flex items-end justify-between gap-4 lg:mt-0">
+                <h3 className="text-3xl font-bold leading-[1.06] tracking-[-0.03em] text-[var(--text-primary)] sm:text-4xl lg:text-[42px]">
+                  How It Works —
+                  <br />
+                  Step by Step
+                </h3>
 
-              return (
-                <ScrollReveal
-                  key={step.number}
-                  delayMs={idx * 110}
-                  distancePx={34}
-                  className="flex"
+                <svg
+                  viewBox="0 0 64 36"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  aria-hidden="true"
+                  className="mb-1 h-8 w-14 shrink-0 text-[var(--text-primary)] sm:h-9 sm:w-16"
                 >
-                  <button
-                    type="button"
-                    onMouseEnter={() => setHoveredStep(idx)}
-                    onMouseLeave={() => setHoveredStep(null)}
-                    onClick={() => navigate(step.to)}
-                    className={`group relative flex w-full cursor-pointer flex-col justify-between overflow-hidden text-left transition-all duration-300 ${
-                      idx > 0 ? 'lg:border-l lg:border-[var(--border-subtle)]' : ''
-                    } rounded-2xl border border-[var(--border-subtle)] p-5 lg:rounded-none lg:border-y-0 lg:border-r-0 lg:px-6 lg:py-6`}
-                  >
-                    {/* Resting Dot-Grid & Watermark + Full-Column Real Photo Hover Reveal */}
-                    <div
-                      aria-hidden="true"
-                      className="pointer-events-none absolute inset-0 overflow-hidden"
-                    >
-                      <div
-                        className={`absolute inset-x-0 top-0 h-[240px] transition-opacity duration-300 ${
-                          isHovered ? 'opacity-0' : 'opacity-35 dark:opacity-25'
-                        }`}
-                        style={{
-                          backgroundImage:
-                            'radial-gradient(var(--border-strong) 1px, transparent 1px)',
-                          backgroundSize: '18px 18px',
-                        }}
-                      />
-                      <span
-                        className={`pointer-events-none absolute right-5 top-28 select-none text-7xl font-bold tracking-tighter transition-all duration-500 ${
-                          isHovered
-                            ? 'translate-y-2 opacity-0'
-                            : 'text-[var(--text-primary)]/[0.045]'
-                        }`}
-                      >
-                        {step.number}
-                      </span>
+                  <path
+                    d="M2 18H60M60 18L44 4M60 18L44 32"
+                    stroke="currentColor"
+                    strokeWidth="3.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </div>
+            </ScrollReveal>
 
-                      <img
-                        src={step.image}
-                        alt=""
-                        className={`h-full w-full object-cover transition-all duration-700 ease-out ${
-                          isHovered ? 'scale-105 opacity-100' : 'scale-100 opacity-0'
-                        }`}
-                      />
-                      <div
-                        className={`absolute inset-0 bg-gradient-to-t from-black/85 via-black/45 to-black/25 transition-opacity duration-400 ${
-                          isHovered ? 'opacity-100' : 'opacity-0'
-                        }`}
-                      />
-                    </div>
+            {/* Row 1, Col 3: Step 1 */}
+            {renderProcessStepCard(PROCESS_STEPS[0], 110)}
 
-                    <div className="relative z-10 mb-6 flex flex-col justify-between lg:min-h-[210px]">
-                      <div
-                        className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold shadow-xs transition-all duration-300 ease-out ${step.stepOffsetClass} ${
-                          isHovered
-                            ? step.hoverBarClass
-                            : 'bg-[#1c1e21] text-white dark:bg-[#f1f2ea] dark:text-[#181a18]'
-                        }`}
-                      >
-                        <span>{step.barLabel}</span>
-                        <ArrowUpRight
-                          className={`h-3.5 w-3.5 transition-transform duration-300 ${
-                            isHovered ? 'translate-x-0.5 -translate-y-0.5 opacity-100' : 'opacity-80'
-                          }`}
-                        />
-                      </div>
+            {/* Row 1, Col 4: Step 2 */}
+            {renderProcessStepCard(PROCESS_STEPS[1], 160)}
 
-                      <span
-                        className={`mt-6 hidden text-[11px] font-semibold transition-colors duration-300 lg:block ${
-                          isHovered ? 'text-white/85' : 'text-[var(--text-muted)]'
-                        }`}
-                      >
-                        {step.number}
-                      </span>
-                    </div>
+            {/* Row 1, Col 5: Photo 1 */}
+            {renderProcessPhotoCard(PROCESS_PHOTOS[0], 210)}
 
-                    <div
-                      className={`relative z-10 border-t pt-4 transition-colors duration-300 ${
-                        isHovered ? 'border-white/20' : 'border-[var(--border-subtle)]'
-                      }`}
-                    >
-                      <div className="mb-1 flex items-center justify-between">
-                        <h3
-                          className={`text-sm font-bold transition-colors duration-300 ${
-                            isHovered ? 'text-white' : 'text-[var(--text-primary)]'
-                          }`}
-                        >
-                          {step.title}
-                        </h3>
-                        <span
-                          className={`text-[11px] font-semibold transition-colors duration-300 lg:hidden ${
-                            isHovered ? 'text-white/85' : 'text-[var(--text-muted)]'
-                          }`}
-                        >
-                          {step.number}
-                        </span>
-                      </div>
-                      <p
-                        className={`text-xs leading-relaxed transition-colors duration-300 ${
-                          isHovered ? 'text-white/85' : 'text-[var(--text-secondary)]'
-                        }`}
-                      >
-                        {step.description}
-                      </p>
-                    </div>
-                  </button>
-                </ScrollReveal>
-              )
-            })}
+            {/* Row 2, Col 1: Photo 2 */}
+            {renderProcessPhotoCard(PROCESS_PHOTOS[1], 120)}
+
+            {/* Row 2, Col 2: Step 3 */}
+            {renderProcessStepCard(PROCESS_STEPS[2], 170)}
+
+            {/* Row 2, Col 3: Step 4 */}
+            {renderProcessStepCard(PROCESS_STEPS[3], 220)}
+
+            {/* Row 2, Col 4: Photo 3 */}
+            {renderProcessPhotoCard(PROCESS_PHOTOS[2], 270)}
+
+            {/* Row 2, Col 5: Step 5 */}
+            {renderProcessStepCard(PROCESS_STEPS[4], 320)}
           </div>
         </section>
 
