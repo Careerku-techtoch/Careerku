@@ -87,10 +87,10 @@ export function DiscoverPage() {
   }
 
   return (
-    <section className="flex flex-col">
+    <section className="flex flex-col gap-3.5">
       <FolderTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 
-      <div className="careerku-sheet relative z-10 rounded-b-3xl rounded-tr-3xl p-5 sm:p-6">
+      <div className="careerku-sheet relative z-10 rounded-[28px] p-5 sm:p-6">
         <div className="mb-5 flex flex-col gap-3.5 lg:flex-row lg:items-center lg:justify-between">
           <div>
             <h2 className="text-lg font-bold tracking-tight text-[var(--text-primary)]">

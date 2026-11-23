@@ -93,10 +93,10 @@ export function TrackerPage() {
     null
 
   return (
-    <section className="flex flex-col">
+    <section className="flex flex-col gap-3.5">
       <FolderTabs tabs={tabs} activeTab={activeTab} onChange={setActiveTab} />
 
-      <div className="careerku-sheet relative z-10 rounded-b-3xl rounded-tr-3xl p-5 sm:p-6">
+      <div className="careerku-sheet relative z-10 rounded-[28px] p-5 sm:p-6">
         {enrichedTracked.length === 0 ? (
           <div className="careerku-card flex flex-col items-center justify-center rounded-2xl px-6 py-16 text-center">
             <p className="mb-1 text-base font-bold text-[var(--text-primary)]">
