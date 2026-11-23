@@ -1,2 +1,6 @@
-// Page components will be added here.
-export {}
+export { AnalyzePage } from './AnalyzePage'
+export { DashboardPage } from './DashboardPage'
+export { DiscoverPage } from './DiscoverPage'
+export { ProfilePage } from './ProfilePage'
+export { TrackerPage } from './TrackerPage'
+export { WelcomePage } from './WelcomePage'
