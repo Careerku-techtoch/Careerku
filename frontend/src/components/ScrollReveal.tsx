@@ -1,4 +1,8 @@
-import { useEffect, useRef, useState, type ReactNode } from 'react'
+import { useLayoutEffect, useRef, type ReactNode } from 'react'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
 
 interface ScrollRevealProps {
   children: ReactNode
@@ -18,53 +22,46 @@ export function ScrollReveal({
   className = '',
 }: ScrollRevealProps) {
   const ref = useRef<HTMLDivElement | null>(null)
-  const [isVisible, setIsVisible] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false
-    return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  })
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const node = ref.current
     if (!node) return
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            setIsVisible(true)
-          } else if (entry.boundingClientRect.top > 0) {
-            setIsVisible(false)
-          }
-        }
-      },
-      {
-        threshold: 0.12,
-        rootMargin: '0px 0px -48px 0px',
-      },
-    )
+    const mm = gsap.matchMedia()
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      const fromVars: gsap.TweenVars = {
+        opacity: 0,
+        y: distancePx,
+        scale: scaleFrom,
+      }
+      const toVars: gsap.TweenVars = {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+        duration: 0.85,
+        delay: delayMs / 1000,
+        ease: 'power3.out',
+        clearProps: 'transform,filter',
+        scrollTrigger: {
+          trigger: node,
+          start: 'top 88%',
+          once: true,
+        },
+      }
 
-    observer.observe(node)
-    return () => observer.disconnect()
-  }, [])
+      if (blur) {
+        fromVars.filter = 'blur(6px)'
+        toVars.filter = 'blur(0px)'
+      }
+
+      gsap.fromTo(node, fromVars, toVars)
+    })
+
+    return () => mm.revert()
+  }, [delayMs, distancePx, scaleFrom, blur])
 
   return (
-    <div
-      ref={ref}
-      style={{
-        opacity: isVisible ? 1 : 0,
-        transform: isVisible
-          ? 'translate3d(0, 0, 0) scale(1)'
-          : `translate3d(0, ${distancePx}px, 0) scale(${scaleFrom})`,
-        filter: blur ? (isVisible ? 'blur(0px)' : 'blur(5px)') : undefined,
-        transitionProperty: 'opacity, transform, filter',
-        transitionDuration: '880ms',
-        transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
-        transitionDelay: isVisible ? `${delayMs}ms` : '0ms',
-        willChange: 'opacity, transform',
-      }}
-      className={className}
-    >
+    <div ref={ref} className={className}>
       {children}
     </div>
   )

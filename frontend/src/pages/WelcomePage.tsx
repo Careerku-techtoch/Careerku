@@ -1,5 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import {
   ArrowRight,
   ArrowUpRight,
@@ -12,8 +14,10 @@ import {
   Sun,
   Trophy,
 } from 'lucide-react'
-import { CareerkuLogo, ScrollReveal } from '@/components'
+import { CareerkuLogo } from '@/components'
 import { useCareerku } from '@/hooks'
+
+gsap.registerPlugin(ScrollTrigger)
 
 interface ProcessStep {
   stepLabel: string
@@ -120,6 +124,7 @@ export function WelcomePage() {
   const [hoveredCard, setHoveredCard] = useState<number | null>(null)
   const [hoveredVoice, setHoveredVoice] = useState<number | null>(null)
   const [isScrolled, setIsScrolled] = useState(false)
+  const pageRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 36)
@@ -128,10 +133,270 @@ export function WelcomePage() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  useLayoutEffect(() => {
+    const root = pageRef.current
+    if (!root) return
+
+    const mm = gsap.matchMedia()
+    mm.add(
+      '(prefers-reduced-motion: no-preference)',
+      () => {
+        // 1. Global Scroll Progress Bar
+        gsap.to('[data-gsap="scroll-progress"]', {
+          scaleX: 1,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: root,
+            start: 'top top',
+            end: 'bottom bottom',
+            scrub: 0.2,
+          },
+        })
+
+        // 2. Hero Entrance Timeline (Immediate on Mount)
+        const heroTl = gsap.timeline({ defaults: { ease: 'power3.out' } })
+        heroTl
+          .fromTo(
+            '[data-gsap="hero-bg"]',
+            { scale: 1.08 },
+            { scale: 1, duration: 1.3, ease: 'power2.out' },
+            0,
+          )
+          .from(
+            '[data-gsap="hero-social-label"]',
+            { y: 16, opacity: 0, duration: 0.6 },
+            0.15,
+          )
+          .from(
+            '[data-gsap="hero-social-icon"]',
+            {
+              y: 14,
+              opacity: 0,
+              scale: 0.9,
+              duration: 0.5,
+              stagger: 0.06,
+              clearProps: 'transform',
+            },
+            0.22,
+          )
+          .from(
+            '[data-gsap="hero-line"]',
+            {
+              yPercent: 105,
+              opacity: 0,
+              duration: 0.9,
+              stagger: 0.12,
+              ease: 'power4.out',
+            },
+            0.25,
+          )
+          .from(
+            '[data-gsap="hero-desc"]',
+            { y: 22, opacity: 0, duration: 0.75 },
+            0.55,
+          )
+
+        // 3. Hero Scroll Parallax (scrub: true)
+        gsap.to('[data-gsap="hero-bg"]', {
+          yPercent: 12,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '[data-gsap="hero-section"]',
+            start: 'top top',
+            end: 'bottom top',
+            scrub: true,
+          },
+        })
+        gsap.to('[data-gsap="hero-copy"]', {
+          y: -32,
+          opacity: 0.3,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: '[data-gsap="hero-section"]',
+            start: 'top top',
+            end: 'bottom top',
+            scrub: true,
+          },
+        })
+
+        // 4. Section 2 — About (#about)
+        gsap.from('[data-gsap="about-eyebrow"]', {
+          x: -20,
+          opacity: 0,
+          duration: 0.7,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '#about',
+            start: 'top 84%',
+            once: true,
+          },
+        })
+        gsap.from('[data-gsap="about-headline"]', {
+          y: 36,
+          opacity: 0,
+          duration: 0.9,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '#about',
+            start: 'top 82%',
+            once: true,
+          },
+        })
+        gsap.fromTo(
+          '[data-gsap="about-muted"]',
+          { opacity: 0.35 },
+          {
+            opacity: 1,
+            ease: 'none',
+            scrollTrigger: {
+              trigger: '#about',
+              start: 'top 78%',
+              end: 'top 35%',
+              scrub: 0.6,
+            },
+          },
+        )
+
+        // 5. Section 3 — Feature Bento Cards (#features) + Stat Counters
+        gsap.from('[data-gsap="feature-card"]', {
+          y: 44,
+          opacity: 0,
+          scale: 0.96,
+          duration: 0.8,
+          stagger: 0.1,
+          ease: 'power3.out',
+          clearProps: 'transform',
+          scrollTrigger: {
+            trigger: '#features',
+            start: 'top 84%',
+            once: true,
+          },
+        })
+
+        gsap.utils.toArray<HTMLElement>('[data-gsap-count]').forEach((el) => {
+          const target = Number(el.dataset.target ?? '0')
+          const suffix = el.dataset.suffix ?? ''
+          const counter = { value: 0 }
+          gsap.to(counter, {
+            value: target,
+            duration: 1.1,
+            ease: 'power2.out',
+            scrollTrigger: {
+              trigger: '#features',
+              start: 'top 84%',
+              once: true,
+            },
+            onUpdate: () => {
+              el.textContent = `${Math.round(counter.value)}${suffix}`
+            },
+          })
+        })
+
+        // 6. Section 4 — How It Works (#process) Bento Grid + Photo Parallax
+        gsap.from('[data-gsap="process-header"]', {
+          y: 28,
+          opacity: 0,
+          duration: 0.8,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '#process',
+            start: 'top 84%',
+            once: true,
+          },
+        })
+        gsap.from('[data-gsap="process-arrow"]', {
+          x: -16,
+          opacity: 0,
+          duration: 0.7,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '[data-gsap="process-grid"]',
+            start: 'top 84%',
+            once: true,
+          },
+        })
+        gsap.from('[data-gsap="process-item"]', {
+          y: 38,
+          opacity: 0,
+          scale: 0.97,
+          duration: 0.75,
+          stagger: { each: 0.07, from: 'start' },
+          ease: 'power3.out',
+          clearProps: 'transform',
+          scrollTrigger: {
+            trigger: '[data-gsap="process-grid"]',
+            start: 'top 84%',
+            once: true,
+          },
+        })
+        gsap.utils.toArray<HTMLElement>('[data-gsap="process-photo-parallax"]').forEach((el) => {
+          gsap.fromTo(
+            el,
+            { yPercent: -6, scale: 1.14 },
+            {
+              yPercent: 6,
+              scale: 1.14,
+              ease: 'none',
+              scrollTrigger: {
+                trigger: el.parentElement,
+                start: 'top bottom',
+                end: 'bottom top',
+                scrub: true,
+              },
+            },
+          )
+        })
+
+        // 7. Section 5 — Student Voices (#voices)
+        gsap.from('[data-gsap="voices-header"]', {
+          y: 26,
+          opacity: 0,
+          duration: 0.75,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '#voices',
+            start: 'top 85%',
+            once: true,
+          },
+        })
+        gsap.from('[data-gsap="voice-card"]', {
+          y: 42,
+          opacity: 0,
+          scale: 0.96,
+          duration: 0.8,
+          stagger: 0.1,
+          ease: 'power3.out',
+          clearProps: 'transform',
+          scrollTrigger: {
+            trigger: '[data-gsap="voices-grid"]',
+            start: 'top 85%',
+            once: true,
+          },
+        })
+
+        // 8. Section 6 — Dark Footer
+        gsap.from('[data-gsap="footer"]', {
+          y: 28,
+          opacity: 0,
+          duration: 0.75,
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '[data-gsap="footer"]',
+            start: 'top 95%',
+            once: true,
+          },
+        })
+      },
+      root,
+    )
+
+    return () => mm.revert()
+  }, [])
+
   const highMatchCount = opportunities.filter((o) => o.match.tier === 'high').length
 
-  const renderProcessStepCard = (step: ProcessStep, delayMs: number) => (
-    <ScrollReveal delayMs={delayMs} distancePx={28} className="flex">
+  const renderProcessStepCard = (step: ProcessStep) => (
+    <div data-gsap="process-item" className="flex">
       <button
         type="button"
         onClick={() => navigate(step.to)}
@@ -174,26 +439,28 @@ export function WelcomePage() {
           </p>
         </div>
       </button>
-    </ScrollReveal>
+    </div>
   )
 
-  const renderProcessPhotoCard = (
-    photo: (typeof PROCESS_PHOTOS)[number],
-    delayMs: number,
-  ) => (
-    <ScrollReveal delayMs={delayMs} distancePx={28} className="flex">
+  const renderProcessPhotoCard = (photo: (typeof PROCESS_PHOTOS)[number]) => (
+    <div data-gsap="process-item" className="flex">
       <div className="group relative min-h-[285px] w-full overflow-hidden rounded-[24px] bg-[var(--bg-sheet)] sm:min-h-[320px]">
-        <img
-          src={photo.src}
-          alt={photo.alt}
-          className={`absolute inset-0 h-full w-full object-cover ${photo.objectPosition} transition-transform duration-700 ease-out group-hover:scale-105`}
-        />
+        <div data-gsap="process-photo-parallax" className="absolute inset-0 h-full w-full">
+          <img
+            src={photo.src}
+            alt={photo.alt}
+            className={`h-full w-full object-cover ${photo.objectPosition} transition-transform duration-700 ease-out group-hover:scale-105`}
+          />
+        </div>
       </div>
-    </ScrollReveal>
+    </div>
   )
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-[var(--bg-card)] text-[var(--text-primary)]">
+    <div
+      ref={pageRef}
+      className="min-h-screen overflow-x-clip bg-[var(--bg-card)] text-[var(--text-primary)]"
+    >
       {/* ================================================================= */}
       {/* TOP FLOATING NAVBAR (Transparent Over Full-Bleed Hero)            */}
       {/* ================================================================= */}
@@ -220,9 +487,7 @@ export function WelcomePage() {
           <nav
             aria-label="Main navigation"
             className={`hidden items-center gap-7 text-[13px] font-medium transition-colors duration-300 md:flex ${
-              isScrolled
-                ? 'text-[var(--text-primary)]/85'
-                : 'text-[#181a1d]/85'
+              isScrolled ? 'text-[var(--text-primary)]/85' : 'text-[#181a1d]/85'
             }`}
           >
             <a
@@ -279,94 +544,127 @@ export function WelcomePage() {
             </button>
           </div>
         </div>
+
+        {/* Scroll Progress Bar */}
+        <div aria-hidden="true" className="h-[2px] w-full overflow-hidden">
+          <div
+            data-gsap="scroll-progress"
+            className="h-full w-full origin-left scale-x-0 bg-[#5257e5] dark:bg-[#a6aaf7]"
+          />
+        </div>
       </header>
 
       {/* ================================================================= */}
       {/* SECTION 1: Full-Bleed Edge-to-Edge Hero (Extends Behind Navbar)   */}
       {/* ================================================================= */}
-      <section className="relative flex h-screen min-h-[600px] max-h-[920px] w-full flex-col justify-between overflow-hidden pt-20 sm:pt-24">
-        <img
-          src="/images/hero-campus.jpg"
-          alt="Undergraduate student in a sunlit modern campus courtyard"
-          className="pointer-events-none absolute inset-0 h-full w-full -scale-x-100 object-cover object-[center_20%]"
-        />
+      <section
+        data-gsap="hero-section"
+        className="relative flex h-screen min-h-[600px] max-h-[920px] w-full flex-col justify-between overflow-hidden pt-20 sm:pt-24"
+      >
+        <div data-gsap="hero-bg" className="pointer-events-none absolute inset-0">
+          <img
+            src="/images/hero-campus.jpg"
+            alt="Undergraduate student in a sunlit modern campus courtyard"
+            className="h-full w-full -scale-x-100 object-cover object-[center_20%]"
+          />
+        </div>
 
         {/* Top-Left: Follow Us & Crisp White Social Icon Circles */}
-        <ScrollReveal delayMs={140} distancePx={18} className="relative z-10 px-6 pt-4 sm:px-10 sm:pt-6 lg:px-12">
-          <p className="mb-3 text-base font-semibold tracking-tight text-[#181a1d] sm:text-lg">
+        <div className="relative z-10 px-6 pt-4 sm:px-10 sm:pt-6 lg:px-12">
+          <p
+            data-gsap="hero-social-label"
+            className="mb-3 text-base font-semibold tracking-tight text-[#181a1d] sm:text-lg"
+          >
             Follow us
           </p>
           <div className="flex items-center gap-2">
-            <a
-              href="#about"
-              aria-label="Instagram"
-              title="Instagram"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#181a1d] shadow-sm transition-transform hover:scale-105"
-            >
-              <svg
-                viewBox="0 0 24 24"
-                className="h-4.5 w-4.5"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+            <div data-gsap="hero-social-icon">
+              <a
+                href="#about"
+                aria-label="Instagram"
+                title="Instagram"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#181a1d] shadow-sm transition-transform hover:scale-105"
               >
-                <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
-                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-                <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
-              </svg>
-            </a>
-            <a
-              href="#about"
-              aria-label="X"
-              title="X"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#181a1d] shadow-sm transition-transform hover:scale-105"
-            >
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-              </svg>
-            </a>
-            <a
-              href="#process"
-              aria-label="LinkedIn"
-              title="LinkedIn"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#181a1d] shadow-sm transition-transform hover:scale-105"
-            >
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
-                <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
-              </svg>
-            </a>
-            <a
-              href="#voices"
-              aria-label="GitHub"
-              title="GitHub"
-              className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#181a1d] shadow-sm transition-transform hover:scale-105"
-            >
-              <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="currentColor">
-                <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z" />
-              </svg>
-            </a>
+                <svg
+                  viewBox="0 0 24 24"
+                  className="h-4.5 w-4.5"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect width="20" height="20" x="2" y="2" rx="5" ry="5" />
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                  <line x1="17.5" x2="17.51" y1="6.5" y2="6.5" />
+                </svg>
+              </a>
+            </div>
+            <div data-gsap="hero-social-icon">
+              <a
+                href="#about"
+                aria-label="X"
+                title="X"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#181a1d] shadow-sm transition-transform hover:scale-105"
+              >
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                </svg>
+              </a>
+            </div>
+            <div data-gsap="hero-social-icon">
+              <a
+                href="#process"
+                aria-label="LinkedIn"
+                title="LinkedIn"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#181a1d] shadow-sm transition-transform hover:scale-105"
+              >
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="currentColor">
+                  <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
+                </svg>
+              </a>
+            </div>
+            <div data-gsap="hero-social-icon">
+              <a
+                href="#voices"
+                aria-label="GitHub"
+                title="GitHub"
+                className="flex h-10 w-10 items-center justify-center rounded-full bg-white text-[#181a1d] shadow-sm transition-transform hover:scale-105"
+              >
+                <svg viewBox="0 0 24 24" className="h-4.5 w-4.5" fill="currentColor">
+                  <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z" />
+                </svg>
+              </a>
+            </div>
           </div>
-        </ScrollReveal>
+        </div>
 
         {/* Bottom-Left: Bold Two-Line Headline + Concise Description */}
-        <ScrollReveal
-          delayMs={260}
-          distancePx={24}
+        <div
+          data-gsap="hero-copy"
           className="relative z-10 max-w-xl px-6 pb-8 sm:px-10 sm:pb-12 lg:px-12 lg:pb-14"
         >
           <h1 className="text-5xl font-bold leading-[0.98] tracking-[-0.035em] text-[#181a1d] sm:text-6xl lg:text-[72px]">
-            Match Smarter.
-            <br />
-            Grow Faster.
+            <span className="block overflow-hidden">
+              <span data-gsap="hero-line" className="block">
+                Match Smarter.
+              </span>
+            </span>
+            <span className="block overflow-hidden">
+              <span data-gsap="hero-line" className="block">
+                Grow Faster.
+              </span>
+            </span>
           </h1>
-          <p className="mt-4 max-w-md text-xs font-medium leading-relaxed text-[#181a1d]/80 sm:text-sm">
+          <p
+            data-gsap="hero-desc"
+            className="mt-4 max-w-md text-xs font-medium leading-relaxed text-[#181a1d]/80 sm:text-sm"
+          >
             Careerku is an AI-powered career platform for undergraduate students that brings
             together internships, competitions, and scholarships with skill gap analysis and
             application tracking.
           </p>
-        </ScrollReveal>
+        </div>
       </section>
 
       <main className="w-full px-4 pb-10 sm:px-6 lg:px-8">
@@ -375,22 +673,22 @@ export function WelcomePage() {
         {/* ================================================================= */}
         <section id="about" className="py-16 sm:py-24">
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-            <ScrollReveal delayMs={0} distancePx={20} className="lg:col-span-3">
+            <div data-gsap="about-eyebrow" className="lg:col-span-3">
               <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
                 — About Careerku
               </span>
-            </ScrollReveal>
-            <ScrollReveal delayMs={120} distancePx={32} className="lg:col-span-9">
+            </div>
+            <div data-gsap="about-headline" className="lg:col-span-9">
               <h2 className="text-2xl font-medium leading-[1.3] tracking-tight text-[var(--text-primary)] sm:text-4xl">
                 We believe career readiness isn’t built from scattered listings, but from clear
                 direction.{' '}
-                <span className="text-[var(--text-muted)]">
+                <span data-gsap="about-muted" className="text-[var(--text-muted)]">
                   Careerku brings internships, scholarships, and competitions into one place,
                   helping students understand requirements, close skill gaps, and apply with
                   confidence.
                 </span>
               </h2>
-            </ScrollReveal>
+            </div>
           </div>
         </section>
 
@@ -400,7 +698,7 @@ export function WelcomePage() {
         <section id="features" className="pb-16 sm:pb-24">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
             {/* Card 1: 3+ Categories -> Transforms to Deep Charcoal on Hover */}
-            <ScrollReveal delayMs={0} distancePx={36}>
+            <div data-gsap="feature-card">
               <button
                 type="button"
                 onMouseEnter={() => setHoveredCard(0)}
@@ -462,7 +760,11 @@ export function WelcomePage() {
                   >
                     Opportunity Categories
                   </p>
-                  <p className="mt-1 text-4xl font-semibold tracking-tight">3+</p>
+                  <p className="mt-1 text-4xl font-semibold tracking-tight">
+                    <span data-gsap-count data-target="3" data-suffix="+">
+                      3+
+                    </span>
+                  </p>
                   <div className="mt-2 flex items-center justify-between gap-2">
                     <p
                       className={`text-[11px] transition-colors duration-300 ${
@@ -479,10 +781,10 @@ export function WelcomePage() {
                   </div>
                 </div>
               </button>
-            </ScrollReveal>
+            </div>
 
             {/* Card 2: 7 Stages -> Same Clean Resting Surface, Shifts to Periwinkle-Indigo on Hover */}
-            <ScrollReveal delayMs={100} distancePx={36}>
+            <div data-gsap="feature-card">
               <button
                 type="button"
                 onMouseEnter={() => setHoveredCard(1)}
@@ -503,7 +805,11 @@ export function WelcomePage() {
                     >
                       Core User Flow
                     </p>
-                    <p className="mt-1 text-4xl font-semibold tracking-tight">7 Stages</p>
+                    <p className="mt-1 text-4xl font-semibold tracking-tight">
+                      <span data-gsap-count data-target="7" data-suffix=" Stages">
+                        7 Stages
+                      </span>
+                    </p>
                   </div>
                   <span
                     className={`flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-300 ${
@@ -537,10 +843,10 @@ export function WelcomePage() {
                   </div>
                 </div>
               </button>
-            </ScrollReveal>
+            </div>
 
             {/* Card 3: AI + OCR -> Transforms to Deep Indigo-Midnight on Hover */}
-            <ScrollReveal delayMs={200} distancePx={36}>
+            <div data-gsap="feature-card">
               <button
                 type="button"
                 onMouseEnter={() => setHoveredCard(2)}
@@ -595,10 +901,10 @@ export function WelcomePage() {
                   </span>
                 </div>
               </button>
-            </ScrollReveal>
+            </div>
 
             {/* Card 4: Verified & Tracked -> Transforms to Deep Emerald on Hover */}
-            <ScrollReveal delayMs={300} distancePx={36}>
+            <div data-gsap="feature-card">
               <button
                 type="button"
                 onMouseEnter={() => setHoveredCard(3)}
@@ -619,7 +925,11 @@ export function WelcomePage() {
                     >
                       Verified & Tracked
                     </p>
-                    <p className="mt-1 text-4xl font-semibold tracking-tight">100%</p>
+                    <p className="mt-1 text-4xl font-semibold tracking-tight">
+                      <span data-gsap-count data-target="100" data-suffix="%">
+                        100%
+                      </span>
+                    </p>
                   </div>
                   <span
                     className={`flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 ${
@@ -651,7 +961,7 @@ export function WelcomePage() {
                   />
                 </div>
               </button>
-            </ScrollReveal>
+            </div>
           </div>
         </section>
 
@@ -663,9 +973,8 @@ export function WelcomePage() {
           className="border-t border-[var(--border-subtle)] py-16 sm:py-24"
         >
           {/* Top Bar: Dot + Pill ("How It Works") on Left, Bold Display Title on Right */}
-          <ScrollReveal
-            delayMs={0}
-            distancePx={22}
+          <div
+            data-gsap="process-header"
             className="mb-10 flex flex-wrap items-center justify-between gap-6 sm:mb-14"
           >
             <div className="inline-flex items-center gap-1.5">
@@ -681,14 +990,13 @@ export function WelcomePage() {
             <h2 className="text-4xl font-bold leading-none tracking-[-0.035em] text-[var(--text-primary)] sm:text-5xl lg:text-[56px]">
               What Is Careerku
             </h2>
-          </ScrollReveal>
+          </div>
 
           {/* 5-Column × 2-Row Bento Grid */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          <div data-gsap="process-grid" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {/* Row 1, Cols 1-2: Intro Copy + "How It Works — Step by Step" & Sleek Arrow */}
-            <ScrollReveal
-              delayMs={60}
-              distancePx={24}
+            <div
+              data-gsap="process-item"
               className="flex flex-col justify-between py-2 sm:col-span-2 lg:col-span-2 lg:pr-6"
             >
               <p className="max-w-[390px] text-sm leading-[1.5] text-[var(--text-secondary)] sm:text-[15px]">
@@ -706,6 +1014,7 @@ export function WelcomePage() {
                 </h3>
 
                 <svg
+                  data-gsap="process-arrow"
                   viewBox="0 0 64 36"
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
@@ -721,31 +1030,31 @@ export function WelcomePage() {
                   />
                 </svg>
               </div>
-            </ScrollReveal>
+            </div>
 
             {/* Row 1, Col 3: Step 1 */}
-            {renderProcessStepCard(PROCESS_STEPS[0], 110)}
+            {renderProcessStepCard(PROCESS_STEPS[0])}
 
             {/* Row 1, Col 4: Step 2 */}
-            {renderProcessStepCard(PROCESS_STEPS[1], 160)}
+            {renderProcessStepCard(PROCESS_STEPS[1])}
 
             {/* Row 1, Col 5: Photo 1 */}
-            {renderProcessPhotoCard(PROCESS_PHOTOS[0], 210)}
+            {renderProcessPhotoCard(PROCESS_PHOTOS[0])}
 
             {/* Row 2, Col 1: Photo 2 */}
-            {renderProcessPhotoCard(PROCESS_PHOTOS[1], 120)}
+            {renderProcessPhotoCard(PROCESS_PHOTOS[1])}
 
             {/* Row 2, Col 2: Step 3 */}
-            {renderProcessStepCard(PROCESS_STEPS[2], 170)}
+            {renderProcessStepCard(PROCESS_STEPS[2])}
 
             {/* Row 2, Col 3: Step 4 */}
-            {renderProcessStepCard(PROCESS_STEPS[3], 220)}
+            {renderProcessStepCard(PROCESS_STEPS[3])}
 
             {/* Row 2, Col 4: Photo 3 */}
-            {renderProcessPhotoCard(PROCESS_PHOTOS[2], 270)}
+            {renderProcessPhotoCard(PROCESS_PHOTOS[2])}
 
             {/* Row 2, Col 5: Step 5 */}
-            {renderProcessStepCard(PROCESS_STEPS[4], 320)}
+            {renderProcessStepCard(PROCESS_STEPS[4])}
           </div>
         </section>
 
@@ -756,26 +1065,29 @@ export function WelcomePage() {
           id="voices"
           className="border-t border-[var(--border-subtle)] py-16 sm:py-24"
         >
-          <div className="mb-10 flex flex-col justify-between gap-4 sm:flex-row sm:items-end">
-            <ScrollReveal delayMs={0} distancePx={24}>
+          <div
+            data-gsap="voices-header"
+            className="mb-10 flex flex-col justify-between gap-4 sm:flex-row sm:items-end"
+          >
+            <div>
               <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
                 — Student Voices
               </span>
               <h2 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--text-primary)] sm:text-3xl">
                 Built for Real Undergraduate Workflows
               </h2>
-            </ScrollReveal>
-            <ScrollReveal delayMs={100} distancePx={24}>
+            </div>
+            <div>
               <p className="max-w-xs text-xs leading-relaxed text-[var(--text-secondary)]">
                 Designed to cut search time, clarify eligibility, and guide pre-application
                 readiness.
               </p>
-            </ScrollReveal>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div data-gsap="voices-grid" className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
             {/* Card 1: Active Demo Profile */}
-            <ScrollReveal delayMs={0} distancePx={36} className="flex">
+            <div data-gsap="voice-card" className="flex">
               <div
                 onMouseEnter={() => setHoveredVoice(0)}
                 onMouseLeave={() => setHoveredVoice(null)}
@@ -842,7 +1154,7 @@ export function WelcomePage() {
                   <ArrowRight className="h-3.5 w-3.5" />
                 </button>
               </div>
-            </ScrollReveal>
+            </div>
 
             {/* Cards 2–4: Interactive Color-Shifting Student Voice Cards */}
             {STUDENT_VOICES.map((voice, idx) => {
@@ -850,12 +1162,7 @@ export function WelcomePage() {
               const isHovered = hoveredVoice === voiceIndex
 
               return (
-                <ScrollReveal
-                  key={voice.name}
-                  delayMs={voiceIndex * 100}
-                  distancePx={36}
-                  className="flex"
-                >
+                <div key={voice.name} data-gsap="voice-card" className="flex">
                   <button
                     type="button"
                     onMouseEnter={() => setHoveredVoice(voiceIndex)}
@@ -933,7 +1240,7 @@ export function WelcomePage() {
                       </span>
                     </div>
                   </button>
-                </ScrollReveal>
+                </div>
               )
             })}
           </div>
@@ -943,111 +1250,112 @@ export function WelcomePage() {
       {/* ================================================================= */}
       {/* SECTION 6: Full-Bleed Dark Footer                                 */}
       {/* ================================================================= */}
-      <ScrollReveal delayMs={40} distancePx={24} blur={false}>
-        <footer className="w-full bg-[#16181b] px-6 py-12 text-white sm:px-10 sm:py-14 lg:px-12">
-          <div className="flex flex-col items-start justify-between gap-6 border-b border-white/10 pb-8 sm:flex-row sm:items-center">
-            <div className="flex items-center gap-3">
-              <CareerkuLogo size="lg" inverted />
-              <span className="text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
-                Careerku
-              </span>
-            </div>
-
-            <div className="flex flex-wrap items-center gap-2.5">
-              <button
-                type="button"
-                onClick={() => navigate('/discover')}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-white px-5 py-2.5 text-xs font-semibold text-[#16181b] hover:bg-neutral-100"
-              >
-                <span>Get Started</span>
-                <ArrowRight className="h-3.5 w-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/profile')}
-                className="cursor-pointer rounded-full border border-white/20 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/10"
-              >
-                Edit Profile
-              </button>
-            </div>
+      <footer
+        data-gsap="footer"
+        className="w-full bg-[#16181b] px-6 py-12 text-white sm:px-10 sm:py-14 lg:px-12"
+      >
+        <div className="flex flex-col items-start justify-between gap-6 border-b border-white/10 pb-8 sm:flex-row sm:items-center">
+          <div className="flex items-center gap-3">
+            <CareerkuLogo size="lg" inverted />
+            <span className="text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
+              Careerku
+            </span>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 pt-8 text-xs sm:grid-cols-12">
-            <div className="sm:col-span-5">
-              <p className="max-w-xs leading-relaxed text-white/65">
-                Undergraduate career discovery & AI skill gap platform — Smarter Campus and
-                Learning by Team Techtoch.
-              </p>
-              <p className="mt-4 font-semibold text-white/90">Careerku • 2026</p>
-            </div>
-
-            <div className="space-y-2 sm:col-span-3">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-white/45">
-                Navigation
-              </p>
-              <ul className="space-y-1.5 text-white/80">
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/discover')}
-                    className="cursor-pointer hover:text-white"
-                  >
-                    Opportunities (Discover)
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/dashboard')}
-                    className="cursor-pointer hover:text-white"
-                  >
-                    Dashboard
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/analyze')}
-                    className="cursor-pointer hover:text-white"
-                  >
-                    AI Internship Analysis
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/tracker')}
-                    className="cursor-pointer hover:text-white"
-                  >
-                    Tracker & Docs
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/profile')}
-                    className="cursor-pointer hover:text-white"
-                  >
-                    Student Profile
-                  </button>
-                </li>
-              </ul>
-            </div>
-
-            <div className="space-y-2 sm:col-span-4">
-              <p className="text-[10px] font-semibold uppercase tracking-wider text-white/45">
-                Core Capabilities
-              </p>
-              <ul className="space-y-1.5 text-white/75">
-                <li>Rule-Based GPA, Semester & Major Matching</li>
-                <li>AI Skill Gap Evaluation & Portfolio Ideas</li>
-                <li>Document Checklists (CV & Motivation Letter)</li>
-                <li>Official Source Link & Verification Timestamp</li>
-              </ul>
-            </div>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <button
+              type="button"
+              onClick={() => navigate('/discover')}
+              className="inline-flex cursor-pointer items-center gap-2 rounded-full bg-white px-5 py-2.5 text-xs font-semibold text-[#16181b] hover:bg-neutral-100"
+            >
+              <span>Get Started</span>
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => navigate('/profile')}
+              className="cursor-pointer rounded-full border border-white/20 px-4 py-2.5 text-xs font-semibold text-white hover:bg-white/10"
+            >
+              Edit Profile
+            </button>
           </div>
-        </footer>
-      </ScrollReveal>
+        </div>
+
+        <div className="grid grid-cols-1 gap-8 pt-8 text-xs sm:grid-cols-12">
+          <div className="sm:col-span-5">
+            <p className="max-w-xs leading-relaxed text-white/65">
+              Undergraduate career discovery & AI skill gap platform — Smarter Campus and
+              Learning by Team Techtoch.
+            </p>
+            <p className="mt-4 font-semibold text-white/90">Careerku • 2026</p>
+          </div>
+
+          <div className="space-y-2 sm:col-span-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-white/45">
+              Navigation
+            </p>
+            <ul className="space-y-1.5 text-white/80">
+              <li>
+                <button
+                  type="button"
+                  onClick={() => navigate('/discover')}
+                  className="cursor-pointer hover:text-white"
+                >
+                  Opportunities (Discover)
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => navigate('/dashboard')}
+                  className="cursor-pointer hover:text-white"
+                >
+                  Dashboard
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => navigate('/analyze')}
+                  className="cursor-pointer hover:text-white"
+                >
+                  AI Internship Analysis
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => navigate('/tracker')}
+                  className="cursor-pointer hover:text-white"
+                >
+                  Tracker & Docs
+                </button>
+              </li>
+              <li>
+                <button
+                  type="button"
+                  onClick={() => navigate('/profile')}
+                  className="cursor-pointer hover:text-white"
+                >
+                  Student Profile
+                </button>
+              </li>
+            </ul>
+          </div>
+
+          <div className="space-y-2 sm:col-span-4">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-white/45">
+              Core Capabilities
+            </p>
+            <ul className="space-y-1.5 text-white/75">
+              <li>Rule-Based GPA, Semester & Major Matching</li>
+              <li>AI Skill Gap Evaluation & Portfolio Ideas</li>
+              <li>Document Checklists (CV & Motivation Letter)</li>
+              <li>Official Source Link & Verification Timestamp</li>
+            </ul>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
