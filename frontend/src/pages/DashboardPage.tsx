@@ -3,21 +3,24 @@ import { useNavigate } from 'react-router-dom'
 import {
   ArrowUpRight,
   Award,
-  Briefcase,
-  CalendarClock,
   Check,
   ChevronLeft,
   ChevronRight,
-  ClipboardCheck,
   GraduationCap,
   Layers,
   Plus,
   Sparkles,
-  TrendingUp,
   Trophy,
   UserRound,
 } from 'lucide-react'
-import type { MatchTier, OpportunityCategory } from '@/types'
+import {
+  CareerkuMatchGauge,
+  DeadlinePulseGlyph,
+  DocumentReadyGlyph,
+  HighMatchGlyph,
+  MatchIndexGlyph,
+} from '@/components'
+import type { OpportunityCategory } from '@/types'
 import { useCareerku } from '@/hooks'
 import { formatDateID, getCategoryLabel, getDaysUntilDeadline, getStatusLabel } from '@/utils'
 
@@ -51,12 +54,6 @@ const CATEGORY_ACCENTS: Record<
       'bg-rose-100 text-rose-950 ring-1 ring-rose-300 dark:bg-rose-500/25 dark:text-rose-100 dark:ring-rose-400/40',
     badge: 'bg-rose-100 text-rose-900 dark:bg-rose-500/20 dark:text-rose-200',
   },
-}
-
-const MATCH_BADGE_CLASSES: Record<MatchTier, string> = {
-  high: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200',
-  medium: 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-200',
-  low: 'bg-slate-200 text-slate-700 dark:bg-slate-500/25 dark:text-slate-200',
 }
 
 const MONTH_NAMES = [
@@ -320,10 +317,9 @@ export function DashboardPage() {
       {
         id: 'ai-gap-primary',
         badge: 'AI Skill Gap',
-        badgeClass:
-          'bg-indigo-100 text-indigo-800 dark:bg-indigo-500/20 dark:text-indigo-200',
+        badgeClass: 'bg-[var(--accent-indigo-soft)] text-[var(--accent-indigo)]',
         iconBgClass:
-          'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200',
+          'border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--accent-indigo)]',
         title: topIntern
           ? `${topIntern.title} • ${topIntern.organization}`
           : 'AI Internship Match',
@@ -337,9 +333,9 @@ export function DashboardPage() {
         id: 'ai-sprint-featured',
         badge: 'Portfolio Sprint',
         badgeClass:
-          'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-200',
+          'border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-secondary)]',
         iconBgClass:
-          'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200',
+          'border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)]',
         title: secondIntern
           ? `${secondIntern.organization} — Portfolio Sprint`
           : 'AI Portfolio Project Idea',
@@ -352,9 +348,9 @@ export function DashboardPage() {
         id: 'scholarship-alert',
         badge: 'Document Prep',
         badgeClass:
-          'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200',
+          'border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-secondary)]',
         iconBgClass:
-          'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200',
+          'border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-primary)]',
         title: topScholarship
           ? `${topScholarship.title} (${topScholarship.match.score}% Match)`
           : 'Upcoming Deadline Check',
@@ -426,15 +422,13 @@ export function DashboardPage() {
         <button
           type="button"
           onClick={() => navigate('/discover')}
-          className="careerku-card flex cursor-pointer flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-[var(--border-strong)]"
+          className="careerku-card group flex cursor-pointer flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-[var(--border-strong)]"
         >
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
               High Matches
             </span>
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
-              <Briefcase className="h-4 w-4" />
-            </span>
+            <HighMatchGlyph className="h-6 w-6 shrink-0 text-[var(--text-primary)] transition-transform duration-200 group-hover:scale-110" />
           </div>
           <div className="mt-3">
             <p className="text-3xl font-bold tabular-nums text-[var(--text-primary)]">
@@ -449,15 +443,13 @@ export function DashboardPage() {
         <button
           type="button"
           onClick={() => navigate('/analyze')}
-          className="careerku-card flex cursor-pointer flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-[var(--border-strong)]"
+          className="careerku-card group flex cursor-pointer flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-[var(--border-strong)]"
         >
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
               Average Match
             </span>
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-indigo-soft)] text-[var(--accent-indigo)]">
-              <TrendingUp className="h-4 w-4" />
-            </span>
+            <MatchIndexGlyph className="h-6 w-6 shrink-0 text-[var(--text-primary)] transition-transform duration-200 group-hover:scale-110" />
           </div>
           <div className="mt-3">
             <p className="text-3xl font-bold tabular-nums text-[var(--text-primary)]">
@@ -472,28 +464,26 @@ export function DashboardPage() {
         <button
           type="button"
           onClick={() => navigate('/tracker')}
-          className="careerku-card flex cursor-pointer flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-[var(--border-strong)]"
+          className="careerku-card group flex cursor-pointer flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-[var(--border-strong)]"
         >
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
               Documents Ready
             </span>
-            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/15 text-amber-700 dark:text-amber-300">
-              <ClipboardCheck className="h-4 w-4" />
-            </span>
+            <DocumentReadyGlyph className="h-6 w-6 shrink-0 text-[var(--text-primary)] transition-transform duration-200 group-hover:scale-110" />
           </div>
           <div className="mt-3">
             <div className="flex items-baseline justify-between gap-2">
               <p className="text-3xl font-bold tabular-nums text-[var(--text-primary)]">
                 {completedDocsCount}/{allTrackedDocs.length}
               </p>
-              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-amber-800 dark:bg-amber-500/20 dark:text-amber-200">
+              <span className="rounded-full bg-[var(--accent-indigo-soft)] px-2.5 py-0.5 text-xs font-semibold tabular-nums text-[var(--accent-indigo)]">
                 {docReadyPct}%
               </span>
             </div>
             <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[var(--border-subtle)]">
               <div
-                className="h-full rounded-full bg-amber-500 transition-all duration-500 dark:bg-amber-400"
+                className="h-full rounded-full bg-[var(--accent-indigo)] transition-all duration-500"
                 style={{ width: `${docReadyPct}%` }}
               />
             </div>
@@ -506,21 +496,13 @@ export function DashboardPage() {
         <button
           type="button"
           onClick={() => navigate('/discover')}
-          className="careerku-card flex cursor-pointer flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-[var(--border-strong)]"
+          className="careerku-card group flex cursor-pointer flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-[var(--border-strong)]"
         >
           <div className="flex items-center justify-between gap-2">
             <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
               Upcoming Deadlines
             </span>
-            <span
-              className={`flex h-9 w-9 items-center justify-center rounded-xl ${
-                urgentDeadlines.length > 0
-                  ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300'
-                  : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]'
-              }`}
-            >
-              <CalendarClock className="h-4 w-4" />
-            </span>
+            <DeadlinePulseGlyph className="h-6 w-6 shrink-0 text-[var(--text-primary)] transition-transform duration-200 group-hover:scale-110" />
           </div>
           <div className="mt-3">
             <p className="text-3xl font-bold tabular-nums text-[var(--text-primary)]">
@@ -603,7 +585,6 @@ export function DashboardPage() {
               <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
                 {trackedCards.map((item) => {
                   const accent = CATEGORY_ACCENTS[item.opp.category]
-                  const matchClass = MATCH_BADGE_CLASSES[item.opp.match.tier]
                   const isUrgent = item.daysLeft <= 14
 
                   return (
@@ -625,7 +606,7 @@ export function DashboardPage() {
 
                       <div className="flex flex-1 flex-col justify-between p-4">
                         <div>
-                          {/* Top Row: Org Initials + Match Score */}
+                          {/* Top Row: Org Initials + Careerku C-Logo Match Gauge */}
                           <div className="flex items-center justify-between gap-2">
                             <div className="flex min-w-0 items-center gap-2">
                               <span
@@ -638,11 +619,7 @@ export function DashboardPage() {
                                 {item.opp.organization}
                               </span>
                             </div>
-                            <span
-                              className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums ${matchClass}`}
-                            >
-                              {item.opp.match.score}% Match
-                            </span>
+                            <CareerkuMatchGauge score={item.opp.match.score} size="md" className="shrink-0" />
                           </div>
 
                           {/* Title (2 lines) & Category */}
