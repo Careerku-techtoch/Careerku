@@ -58,12 +58,12 @@ export function AppShell({ children }: AppShellProps) {
 
   return (
     <>
-      <div className="flex min-h-screen w-full flex-col bg-[var(--bg-shell)]">
+      <div className="flex min-h-screen w-full flex-col overflow-x-hidden bg-[var(--bg-shell)]">
         {/* Main Column */}
-        <div className="flex min-w-0 flex-1 flex-col pb-20 md:pb-0">
+        <div className="flex min-w-0 flex-1 flex-col pb-20 lg:pb-0">
           {/* Top Bar: Brand Pill + Centered Navigation Pill Tabs + Right Actions */}
           <header className="px-4 pb-2 pt-4 sm:px-6 sm:pt-5 lg:px-8">
-            <div className="flex items-center justify-between gap-3">
+            <div className="mx-auto flex w-full max-w-[1380px] items-center justify-between gap-3">
               {/* Left Brand Pill */}
               <div className="flex min-w-0 items-center">
                 <button
@@ -78,7 +78,7 @@ export function AppShell({ children }: AppShellProps) {
               {/* Center Horizontal Pill Tabs (Ref 1 & Ref 2 Signature) */}
               <nav
                 aria-label="Primary workspace tabs"
-                className="hidden items-center gap-1 rounded-full border border-[var(--border-subtle)]/80 bg-[var(--bg-card)] p-1 shadow-2xs md:flex"
+                className="hidden items-center gap-1 rounded-full border border-[var(--border-subtle)]/80 bg-[var(--bg-card)] p-1 shadow-2xs lg:flex"
               >
                 {NAV_ITEMS.map((item) => {
                   const Icon = item.icon
@@ -87,14 +87,14 @@ export function AppShell({ children }: AppShellProps) {
                       key={item.to}
                       to={item.to}
                       className={({ isActive }) =>
-                        `inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold transition-all duration-200 ${
+                        `inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[13px] font-semibold transition-all duration-200 ${
                           isActive
                             ? 'bg-[#191b1e] text-white shadow-xs dark:bg-[#f1f2ea] dark:text-[#181a18]'
                             : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)]'
                         }`
                       }
                     >
-                      <Icon className="h-3.5 w-3.5" />
+                      <Icon className="h-3.5 w-3.5 shrink-0" />
                       <span>{item.label}</span>
                     </NavLink>
                   )
@@ -200,13 +200,15 @@ export function AppShell({ children }: AppShellProps) {
           </header>
 
           {/* Main Content Area */}
-          <main className="flex-1 px-4 pb-6 pt-1 sm:px-6 sm:pb-6 lg:px-8">{children}</main>
+          <main className="flex-1 px-4 pb-6 pt-1 sm:px-6 sm:pb-6 lg:px-8">
+            <div className="mx-auto w-full max-w-[1380px]">{children}</div>
+          </main>
         </div>
 
         {/* Mobile Bottom Navigation */}
         <nav
           aria-label="Mobile navigation"
-          className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-around border-t border-[var(--border-subtle)] bg-[var(--bg-card)]/95 px-2 py-2 backdrop-blur md:hidden"
+          className="fixed inset-x-0 bottom-0 z-30 flex items-center justify-around border-t border-[var(--border-subtle)] bg-[var(--bg-card)]/95 px-2 py-2 backdrop-blur lg:hidden"
         >
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon

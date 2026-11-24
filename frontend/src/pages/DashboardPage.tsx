@@ -9,41 +9,55 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardCheck,
-  FileText,
   GraduationCap,
   Layers,
   Plus,
   Sparkles,
+  TrendingUp,
   Trophy,
   UserRound,
 } from 'lucide-react'
-import type { OpportunityCategory } from '@/types'
+import type { MatchTier, OpportunityCategory } from '@/types'
 import { useCareerku } from '@/hooks'
-import { formatDateID, getDaysUntilDeadline } from '@/utils'
+import { formatDateID, getCategoryLabel, getDaysUntilDeadline, getStatusLabel } from '@/utils'
 
-const PASTEL_CARD_THEMES = [
+const CATEGORY_ACCENTS: Record<
+  OpportunityCategory,
   {
-    cardBg: 'bg-[#f8eac4] text-[#1c1e21] dark:bg-amber-400/15 dark:text-[#f3f4ee]',
-    pillBg: 'border-[#1c1e21]/15 bg-white/60 text-[#1c1e21] dark:border-white/15 dark:bg-white/10 dark:text-white',
-    barTrack: 'bg-[#1c1e21]/12 dark:bg-white/15',
-    barFill: 'bg-[#e5a91a] dark:bg-amber-400',
-    badgeBg: 'bg-white/75 text-[#1c1e21] dark:bg-white/10 dark:text-amber-200',
+    topBar: string
+    dot: string
+    calendarTile: string
+    badge: string
+  }
+> = {
+  internship: {
+    topBar: 'bg-sky-500',
+    dot: 'bg-sky-500',
+    calendarTile:
+      'bg-sky-100 text-sky-950 ring-1 ring-sky-300 dark:bg-sky-500/25 dark:text-sky-100 dark:ring-sky-400/40',
+    badge: 'bg-sky-100 text-sky-900 dark:bg-sky-500/20 dark:text-sky-200',
   },
-  {
-    cardBg: 'bg-[#dceeff] text-[#1c1e21] dark:bg-sky-400/15 dark:text-[#f3f4ee]',
-    pillBg: 'border-[#1c1e21]/15 bg-white/60 text-[#1c1e21] dark:border-white/15 dark:bg-white/10 dark:text-white',
-    barTrack: 'bg-[#1c1e21]/12 dark:bg-white/15',
-    barFill: 'bg-[#2b7de9] dark:bg-sky-400',
-    badgeBg: 'bg-white/75 text-[#1c1e21] dark:bg-white/10 dark:text-sky-200',
+  scholarship: {
+    topBar: 'bg-amber-500',
+    dot: 'bg-amber-500',
+    calendarTile:
+      'bg-amber-100 text-amber-950 ring-1 ring-amber-300 dark:bg-amber-500/25 dark:text-amber-100 dark:ring-amber-400/40',
+    badge: 'bg-amber-100 text-amber-900 dark:bg-amber-500/20 dark:text-amber-200',
   },
-  {
-    cardBg: 'bg-[#fbdde0] text-[#1c1e21] dark:bg-rose-400/15 dark:text-[#f3f4ee]',
-    pillBg: 'border-[#1c1e21]/15 bg-white/60 text-[#1c1e21] dark:border-white/15 dark:bg-white/10 dark:text-white',
-    barTrack: 'bg-[#1c1e21]/12 dark:bg-white/15',
-    barFill: 'bg-[#e05368] dark:bg-rose-400',
-    badgeBg: 'bg-white/75 text-[#1c1e21] dark:bg-white/10 dark:text-rose-200',
+  competition: {
+    topBar: 'bg-rose-500',
+    dot: 'bg-rose-500',
+    calendarTile:
+      'bg-rose-100 text-rose-950 ring-1 ring-rose-300 dark:bg-rose-500/25 dark:text-rose-100 dark:ring-rose-400/40',
+    badge: 'bg-rose-100 text-rose-900 dark:bg-rose-500/20 dark:text-rose-200',
   },
-] as const
+}
+
+const MATCH_BADGE_CLASSES: Record<MatchTier, string> = {
+  high: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200',
+  medium: 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-200',
+  low: 'bg-slate-200 text-slate-700 dark:bg-slate-500/25 dark:text-slate-200',
+}
 
 const MONTH_NAMES = [
   'January',
@@ -62,6 +76,12 @@ const MONTH_NAMES = [
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const
 
+function getBarToneClass(value: number): string {
+  if (value >= 75) return 'bg-emerald-500 dark:bg-emerald-400'
+  if (value >= 55) return 'bg-amber-500 dark:bg-amber-400'
+  return 'bg-rose-500 dark:bg-rose-400'
+}
+
 export function DashboardPage() {
   const navigate = useNavigate()
   const {
@@ -73,17 +93,13 @@ export function DashboardPage() {
   } = useCareerku()
 
   const [categoryFilter, setCategoryFilter] = useState<'all' | OpportunityCategory>('all')
-  const [expandedDetail, setExpandedDetail] = useState<'skills' | 'academic' | 'experience'>(
-    'skills',
-  )
 
-  // Determine initial calendar month from the nearest upcoming deadline
   const initialCalendarDate = useMemo(() => {
     const firstDeadline = opportunities
       .map((o) => new Date(o.deadline))
       .filter((d) => !Number.isNaN(d.getTime()))
       .sort((a, b) => a.getTime() - b.getTime())[0]
-    return firstDeadline ?? new Date(2026, 4, 1)
+    return firstDeadline ?? new Date(2026, 11, 1)
   }, [opportunities])
 
   const [calendarMonth, setCalendarMonth] = useState(() => ({
@@ -113,12 +129,14 @@ export function DashboardPage() {
   const urgentDeadlines = useMemo(
     () =>
       opportunities
-        .filter((o) => getDaysUntilDeadline(o.deadline) <= 14)
+        .filter((o) => {
+          const days = getDaysUntilDeadline(o.deadline)
+          return days >= 0 && days <= 14
+        })
         .sort((a, b) => getDaysUntilDeadline(a.deadline) - getDaysUntilDeadline(b.deadline)),
     [opportunities],
   )
 
-  // All tracked document checklist items (both completed & pending) for the Dark Checklist Card
   const allTrackedDocs = useMemo(() => {
     return trackedApplications.flatMap((app) => {
       const opp = opportunities.find((o) => o.id === app.opportunityId)
@@ -136,20 +154,28 @@ export function DashboardPage() {
     })
   }, [trackedApplications, opportunities])
 
+  // Prioritize incomplete items first so actionable tasks remain visible at the top
+  const prioritizedChecklistDocs = useMemo(() => {
+    return [...allTrackedDocs]
+      .sort((a, b) => {
+        if (a.completed !== b.completed) return Number(a.completed) - Number(b.completed)
+        return getDaysUntilDeadline(a.deadline) - getDaysUntilDeadline(b.deadline)
+      })
+      .slice(0, 5)
+  }, [allTrackedDocs])
+
   const completedDocsCount = allTrackedDocs.filter((d) => d.completed).length
-  const totalDocsCount = Math.max(1, allTrackedDocs.length)
-  const docReadyPct = Math.round((completedDocsCount / totalDocsCount) * 100)
+  const docReadyPct =
+    allTrackedDocs.length > 0
+      ? Math.round((completedDocsCount / allTrackedDocs.length) * 100)
+      : 0
   const highMatchPct = Math.round(
     (highMatches.length / Math.max(1, opportunities.length)) * 100,
   )
   const appliedCount = trackedApplications.filter(
     (app) => app.status === 'applied' || app.status === 'interview',
   ).length
-  const appliedPct = Math.round(
-    (appliedCount / Math.max(1, trackedApplications.length)) * 100,
-  )
 
-  // Enriched tracked opportunities for the Ref 2 Pastel Ongoing Cards
   const trackedCards = useMemo(() => {
     const list = trackedApplications
       .map((app) => {
@@ -168,40 +194,73 @@ export function DashboardPage() {
         }
       })
       .filter((item): item is NonNullable<typeof item> => item !== null)
+      .sort((a, b) => a.daysLeft - b.daysLeft)
 
     if (categoryFilter === 'all') return list.slice(0, 3)
     return list.filter((item) => item.opp.category === categoryFilter).slice(0, 3)
   }, [trackedApplications, opportunities, categoryFilter])
 
-  // Category & Readiness vertical bars for Ref 1 "Progress" card
-  const matchBars = useMemo(() => {
-    const calcCatAvg = (cat: OpportunityCategory) => {
+  const breakdownRows = useMemo(() => {
+    const getCategoryStats = (cat: OpportunityCategory) => {
       const items = opportunities.filter((o) => o.category === cat)
-      if (items.length === 0) return 0
-      return Math.round(items.reduce((acc, i) => acc + i.match.score, 0) / items.length)
+      const avg =
+        items.length > 0
+          ? Math.round(items.reduce((acc, i) => acc + i.match.score, 0) / items.length)
+          : 0
+      return { avg, count: items.length }
     }
-    const internAvg = calcCatAvg('internship')
-    const compAvg = calcCatAvg('competition')
-    const scholarAvg = calcCatAvg('scholarship')
+
+    const intern = getCategoryStats('internship')
+    const comp = getCategoryStats('competition')
+    const scholar = getCategoryStats('scholarship')
     const gpaScore = Math.min(100, Math.round((profile.gpa / 4) * 100))
-    const skillScore = Math.min(100, profile.skills.length * 14)
+    const skillScore = Math.min(100, profile.skills.length * 10)
 
     return [
-      { label: 'Intern', value: internAvg, highlight: false },
-      { label: 'Comp', value: compAvg, highlight: false },
-      { label: 'Scholar', value: scholarAvg, highlight: false },
-      { label: 'GPA', value: gpaScore, highlight: true },
-      { label: 'Skills', value: skillScore, highlight: false },
-      { label: 'Docs', value: docReadyPct, highlight: false },
+      {
+        label: 'Internships Average',
+        helper: `${intern.count} verified listings`,
+        value: intern.avg,
+      },
+      {
+        label: 'Competitions Average',
+        helper: `${comp.count} verified listings`,
+        value: comp.avg,
+      },
+      {
+        label: 'Scholarships Average',
+        helper: `${scholar.count} verified listings`,
+        value: scholar.avg,
+      },
+      {
+        label: 'GPA Standing',
+        helper: `GPA ${profile.gpa.toFixed(2)} / 4.00`,
+        value: gpaScore,
+      },
+      {
+        label: 'Skills Coverage',
+        helper: `${profile.skills.length} verified skills`,
+        value: skillScore,
+      },
+      {
+        label: 'Document Readiness',
+        helper: `${completedDocsCount} of ${allTrackedDocs.length} documents ready`,
+        value: docReadyPct,
+      },
     ]
-  }, [opportunities, profile.gpa, profile.skills.length, docReadyPct])
+  }, [
+    opportunities,
+    profile.gpa,
+    profile.skills.length,
+    completedDocsCount,
+    allTrackedDocs.length,
+    docReadyPct,
+  ])
 
-  // Monthly calendar days & deadline map (Ref 2 Calendar + Ref 1 Schedule pills)
   const calendarData = useMemo(() => {
     const { year, month } = calendarMonth
     const firstDayOfMonth = new Date(year, month, 1)
     const daysInMonth = new Date(year, month + 1, 0).getDate()
-    // Monday-based index (0 = Mon ... 6 = Sun)
     const startOffset = (firstDayOfMonth.getDay() + 6) % 7
 
     const deadlineByDay = new Map<
@@ -209,7 +268,7 @@ export function DashboardPage() {
       {
         opp: (typeof opportunities)[number]
         isTracked: boolean
-        colorClass: string
+        tileClass: string
       }[]
     >()
 
@@ -218,15 +277,9 @@ export function DashboardPage() {
       if (d.getFullYear() === year && d.getMonth() === month) {
         const dayNum = d.getDate()
         const isTracked = trackedApplications.some((t) => t.opportunityId === opp.id)
-        const colorClass =
-          opp.category === 'internship'
-            ? 'bg-[#7ab8ff] text-[#142238] dark:bg-sky-400 dark:text-[#111315]'
-            : opp.category === 'scholarship'
-              ? 'bg-[#f6d365] text-[#1c1e21] dark:bg-amber-400 dark:text-[#111315]'
-              : 'bg-[#f48b94] text-white dark:bg-rose-400 dark:text-[#111315]'
-
+        const tileClass = CATEGORY_ACCENTS[opp.category].calendarTile
         const existing = deadlineByDay.get(dayNum) ?? []
-        existing.push({ opp, isTracked, colorClass })
+        existing.push({ opp, isTracked, tileClass })
         deadlineByDay.set(dayNum, existing)
       }
     })
@@ -250,8 +303,7 @@ export function DashboardPage() {
     return { cells, monthEvents }
   }, [calendarMonth, opportunities, trackedApplications])
 
-  // AI Skill Gap & Alerts items for Ref 2 "Inbox" card
-  const aiInboxItems = useMemo(() => {
+  const aiRecommendations = useMemo(() => {
     const topIntern = opportunities
       .filter((o) => o.category === 'internship')
       .sort((a, b) => b.match.score - a.match.score)[0]
@@ -268,46 +320,52 @@ export function DashboardPage() {
       {
         id: 'ai-gap-primary',
         badge: 'AI Skill Gap',
-        title: topIntern ? `${topIntern.title} • ${topIntern.organization}` : 'AI Internship Match',
+        badgeClass:
+          'bg-indigo-100 text-indigo-800 dark:bg-indigo-500/20 dark:text-indigo-200',
+        iconBgClass:
+          'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-200',
+        title: topIntern
+          ? `${topIntern.title} • ${topIntern.organization}`
+          : 'AI Internship Match',
         message:
           topIntern && topIntern.match.missingSkills.length > 0
             ? `Priority gap detected: add ${topIntern.match.missingSkills.slice(0, 2).join(' & ')} to boost your ${topIntern.match.score}% match score.`
             : 'All core technical skills matched! Review recommended portfolio project ideas.',
-        featuredDark: false,
         onClick: () => navigate('/analyze'),
       },
       {
         id: 'ai-sprint-featured',
-        badge: 'Recommended Sprint',
+        badge: 'Portfolio Sprint',
+        badgeClass:
+          'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-200',
+        iconBgClass:
+          'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-200',
         title: secondIntern
           ? `${secondIntern.organization} — Portfolio Sprint`
           : 'AI Portfolio Project Idea',
         message:
           secondIntern?.aiImprovementMeta?.portfolioIdeas[0]?.title ??
           'Build a verifiable case-study repository before submitting your next internship CV.',
-        featuredDark: true,
         onClick: () => navigate('/analyze'),
       },
       {
         id: 'scholarship-alert',
         badge: 'Document Prep',
+        badgeClass:
+          'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200',
+        iconBgClass:
+          'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200',
         title: topScholarship
           ? `${topScholarship.title} (${topScholarship.match.score}% Match)`
           : 'Upcoming Deadline Check',
         message: topScholarship
           ? `Due ${formatDateID(topScholarship.deadline)} — verify your transcript and motivation letter checklist.`
           : 'Keep your CV and academic transcript ready in Tracker.',
-        featuredDark: false,
         onClick: () =>
           topScholarship ? openOpportunityDetail(topScholarship.id) : navigate('/tracker'),
       },
     ]
   }, [opportunities, navigate, openOpportunityDetail])
-
-  // SVG Ring calculation for Ref 1 Radial Gauge
-  const ringRadius = 54
-  const ringCircumference = 2 * Math.PI * ringRadius
-  const ringOffset = ringCircumference - (avgScore / 100) * ringCircumference
 
   const stepCalendarMonth = (delta: number) => {
     setCalendarMonth((prev) => {
@@ -316,489 +374,238 @@ export function DashboardPage() {
     })
   }
 
+  const visibleSkills = profile.skills.slice(0, 8)
+  const extraSkillCount = Math.max(0, profile.skills.length - visibleSkills.length)
+  const latestExperience = profile.experiences[0]
+
   return (
-    <section className="space-y-5 pb-4">
+    <section className="space-y-6 pb-6 pt-2">
       {/* =================================================================== */}
-      {/* TOP HEADER: Welcome + Segmented Readiness Bar + 3 Large KPIs (Ref 1) */}
+      {/* 1. CLEAN GREETING HEADER + PRIMARY ACTIONS                          */}
       {/* =================================================================== */}
-      <div className="px-1 pb-2 pt-2">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--bg-card)] px-3 py-1 text-[11px] font-semibold text-[var(--text-secondary)] shadow-2xs">
-            <GraduationCap className="h-3.5 w-3.5 text-[var(--accent-indigo)]" />
+          <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] sm:text-3xl">
+            Welcome back, {firstName}
+          </h1>
+          <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-[var(--text-secondary)]">
+            <GraduationCap className="h-4 w-4 shrink-0 text-[var(--accent-indigo)]" />
             <span>
-              {profile.university} • {profile.major} (Sem {profile.semester})
+              {profile.university} • {profile.major} • Semester {profile.semester} • GPA{' '}
+              <span className="font-semibold tabular-nums text-[var(--text-primary)]">
+                {profile.gpa.toFixed(2)}
+              </span>
             </span>
-          </span>
-          <h2 className="mt-2.5 text-3xl font-semibold tracking-[-0.03em] text-[var(--text-primary)] sm:text-4xl">
-            Welcome in, {firstName}
-          </h2>
+          </p>
         </div>
 
-        {/* Segmented Progress Pill Bar (Left) + Big Unboxed KPI Numbers (Right) */}
-        <div className="mt-6 grid grid-cols-1 items-end gap-6 lg:grid-cols-12">
-          {/* Segmented Bar (Cols 1-7) */}
-          <div className="lg:col-span-7">
-            <div className="mb-2 grid grid-cols-4 text-[11px] font-medium text-[var(--text-secondary)]">
-              <span>High Match</span>
-              <span>Docs Ready</span>
-              <span>Profile Fit</span>
-              <span className="text-right sm:text-left">Submitted</span>
-            </div>
-
-            <div className="flex h-11 w-full items-center gap-1.5">
-              {/* Segment 1: Solid Dark Pill */}
-              <button
-                type="button"
-                onClick={() => navigate('/discover')}
-                title="High-match opportunities"
-                className="flex h-full w-[22%] min-w-[64px] cursor-pointer items-center justify-center rounded-full bg-[#191b1e] px-3 text-xs font-semibold text-white transition-transform hover:scale-[1.02] dark:bg-[#f1f2ea] dark:text-[#181a18]"
-              >
-                {highMatchPct}%
-              </button>
-
-              {/* Segment 2: Warm Gold/Amber Pill */}
-              <button
-                type="button"
-                onClick={() => navigate('/tracker')}
-                title="Completed checklist documents"
-                className="flex h-full w-[22%] min-w-[64px] cursor-pointer items-center justify-center rounded-full bg-[#f5d061] px-3 text-xs font-semibold text-[#191b1e] transition-transform hover:scale-[1.02]"
-              >
-                {docReadyPct}%
-              </button>
-
-              {/* Segment 3: Diagonal Hatch Striped Pill (Crextio Signature) */}
-              <button
-                type="button"
-                onClick={() => navigate('/analyze')}
-                title="Average rule-based match score"
-                className="relative flex h-full flex-1 cursor-pointer items-center overflow-hidden rounded-full border border-[var(--border-strong)]/80 bg-[var(--bg-card)]/75 px-4 text-xs font-semibold text-[var(--text-primary)]"
-                style={{
-                  backgroundImage:
-                    'repeating-linear-gradient(135deg, transparent, transparent 6px, rgba(130, 136, 128, 0.16) 6px, rgba(130, 136, 128, 0.16) 12px)',
-                }}
-              >
-                <span className="rounded-full bg-[var(--bg-card)]/90 px-2.5 py-0.5 text-[11px] font-semibold shadow-2xs">
-                  {avgScore}% Fit
-                </span>
-              </button>
-
-              {/* Segment 4: Outlined Output Pill */}
-              <button
-                type="button"
-                onClick={() => navigate('/tracker')}
-                title="Applications marked Applied or Interview"
-                className="flex h-full w-[18%] min-w-[58px] cursor-pointer items-center justify-center rounded-full border border-[var(--border-strong)] bg-[var(--bg-card)]/60 px-3 text-xs font-semibold text-[var(--text-primary)]"
-              >
-                {appliedPct}%
-              </button>
-            </div>
-          </div>
-
-          {/* 3 Big Clean KPI Counters (Cols 8-12) */}
-          <div className="grid grid-cols-3 gap-3 lg:col-span-5 lg:justify-items-end">
-            <button
-              type="button"
-              onClick={() => navigate('/discover')}
-              className="cursor-pointer text-left transition-opacity hover:opacity-80"
-            >
-              <div className="flex items-baseline gap-1.5">
-                <Briefcase className="h-3.5 w-3.5 text-[var(--text-muted)]" />
-                <span className="text-3xl font-light tracking-[-0.04em] text-[var(--text-primary)] sm:text-5xl">
-                  {highMatches.length}
-                </span>
-              </div>
-              <p className="mt-0.5 text-[11px] font-medium text-[var(--text-secondary)]">
-                High Matches
-              </p>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => navigate('/tracker')}
-              className="cursor-pointer text-left transition-opacity hover:opacity-80"
-            >
-              <div className="flex items-baseline gap-1.5">
-                <ClipboardCheck className="h-3.5 w-3.5 text-[var(--text-muted)]" />
-                <span className="text-3xl font-light tracking-[-0.04em] text-[var(--text-primary)] sm:text-5xl">
-                  {trackedApplications.length}
-                </span>
-              </div>
-              <p className="mt-0.5 text-[11px] font-medium text-[var(--text-secondary)]">
-                Tracked Apps
-              </p>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => navigate('/discover')}
-              className="cursor-pointer text-left transition-opacity hover:opacity-80"
-            >
-              <div className="flex items-baseline gap-1.5">
-                <CalendarClock className="h-3.5 w-3.5 text-rose-500" />
-                <span className="text-3xl font-light tracking-[-0.04em] text-[var(--text-primary)] sm:text-5xl">
-                  {urgentDeadlines.length}
-                </span>
-              </div>
-              <p className="mt-0.5 text-[11px] font-medium text-[var(--text-secondary)]">
-                Due &le; 14 Days
-              </p>
-            </button>
-          </div>
+        <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            type="button"
+            onClick={() => navigate('/analyze')}
+            className="careerku-btn-secondary inline-flex cursor-pointer items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold sm:text-sm"
+          >
+            <Sparkles className="h-4 w-4 text-[var(--accent-indigo)]" />
+            <span>AI Skill Gap</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => navigate('/discover')}
+            className="careerku-btn-primary inline-flex cursor-pointer items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold sm:text-sm"
+          >
+            <span>Explore Opportunities</span>
+            <ArrowUpRight className="h-4 w-4" />
+          </button>
         </div>
       </div>
 
       {/* =================================================================== */}
-      {/* MAIN HYBRID BENTO GRID (12 Columns)                                 */}
+      {/* 2. 4 SCANNABLE KPI SUMMARY CARDS                                    */}
       {/* =================================================================== */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-        {/* ----------------------------------------------------------------- */}
-        {/* LEFT COLUMN (Cols 1-3): Portrait Card (Ref 1) + Details (Ref 2)   */}
-        {/* ----------------------------------------------------------------- */}
-        <div className="flex flex-col gap-4 lg:col-span-3">
-          {/* Student Visual Snapshot Card (Ref 1 "Lora Piterson" Portrait Card) */}
-          <div className="group relative min-h-[255px] overflow-hidden rounded-[26px] bg-[#1c1e21] shadow-sm">
-            <img
-              src="/images/hero-campus.jpg"
-              alt={profile.name}
-              className="absolute inset-0 h-full w-full -scale-x-100 object-cover object-[center_18%] transition-transform duration-500 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent" />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <button
+          type="button"
+          onClick={() => navigate('/discover')}
+          className="careerku-card flex cursor-pointer flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-[var(--border-strong)]"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+              High Matches
+            </span>
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/15 text-emerald-700 dark:text-emerald-300">
+              <Briefcase className="h-4 w-4" />
+            </span>
+          </div>
+          <div className="mt-3">
+            <p className="text-3xl font-bold tabular-nums text-[var(--text-primary)]">
+              {highMatches.length}
+            </p>
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">
+              {highMatchPct}% of {opportunities.length} verified listings
+            </p>
+          </div>
+        </button>
 
-            {/* Top-Right Edit Profile Pill */}
-            <div className="relative z-10 flex justify-end p-4">
-              <button
-                type="button"
-                onClick={() => navigate('/profile')}
-                className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-white/85 px-3 py-1 text-[11px] font-semibold text-[#181a1d] shadow-xs backdrop-blur-md transition-transform hover:scale-105"
-              >
-                <UserRound className="h-3 w-3" />
-                <span>Edit Profile</span>
-              </button>
-            </div>
+        <button
+          type="button"
+          onClick={() => navigate('/analyze')}
+          className="careerku-card flex cursor-pointer flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-[var(--border-strong)]"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+              Average Match
+            </span>
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[var(--accent-indigo-soft)] text-[var(--accent-indigo)]">
+              <TrendingUp className="h-4 w-4" />
+            </span>
+          </div>
+          <div className="mt-3">
+            <p className="text-3xl font-bold tabular-nums text-[var(--text-primary)]">
+              {avgScore}%
+            </p>
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">
+              Across {profile.skills.length} skills & GPA {profile.gpa.toFixed(2)}
+            </p>
+          </div>
+        </button>
 
-            {/* Bottom Overlay: Name, Major & Glass GPA Pill */}
-            <div className=" absolute inset-x-0 bottom-0 z-10 flex items-end justify-between gap-2 p-5">
-              <div className="min-w-0">
-                <h3 className="truncate text-lg font-semibold tracking-tight text-white">
-                  {profile.name}
-                </h3>
-                <p className="truncate text-xs text-white/80">
-                  {profile.major} • Sem {profile.semester}
-                </p>
-              </div>
-              <span className="shrink-0 rounded-full border border-white/35 bg-white/20 px-3 py-1 text-xs font-semibold text-white backdrop-blur-md">
-                GPA {profile.gpa.toFixed(2)}
+        <button
+          type="button"
+          onClick={() => navigate('/tracker')}
+          className="careerku-card flex cursor-pointer flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-[var(--border-strong)]"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+              Documents Ready
+            </span>
+            <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/15 text-amber-700 dark:text-amber-300">
+              <ClipboardCheck className="h-4 w-4" />
+            </span>
+          </div>
+          <div className="mt-3">
+            <div className="flex items-baseline justify-between gap-2">
+              <p className="text-3xl font-bold tabular-nums text-[var(--text-primary)]">
+                {completedDocsCount}/{allTrackedDocs.length}
+              </p>
+              <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-semibold tabular-nums text-amber-800 dark:bg-amber-500/20 dark:text-amber-200">
+                {docReadyPct}%
               </span>
             </div>
-          </div>
-
-          {/* Academic & Skills Accordion Card (Ref 1 Bottom-Left + Ref 2 Detailed Info) */}
-          <div className="careerku-card flex flex-1 flex-col justify-between rounded-[26px] p-5">
-            <div>
-              <div className="mb-3 flex items-center justify-between">
-                <h3 className="text-sm font-bold text-[var(--text-primary)]">
-                  Detailed Information
-                </h3>
-                <span className="rounded-full bg-emerald-500/15 px-2.5 py-0.5 text-[10px] font-semibold text-emerald-700 dark:text-emerald-300">
-                  Active
-                </span>
-              </div>
-
-              <div className="space-y-2">
-                {/* Accordion Item 1: Verified Skills */}
-                <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-sheet)] p-3">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setExpandedDetail(expandedDetail === 'skills' ? 'academic' : 'skills')
-                    }
-                    className="flex w-full cursor-pointer items-center justify-between text-left"
-                  >
-                    <span className="text-xs font-semibold text-[var(--text-primary)]">
-                      Verified Skills ({profile.skills.length})
-                    </span>
-                    <span className="text-[11px] font-semibold text-[var(--accent-indigo)]">
-                      {expandedDetail === 'skills' ? 'Hide' : 'Show'}
-                    </span>
-                  </button>
-                  {expandedDetail === 'skills' && (
-                    <div className="mt-2.5 flex flex-wrap gap-1.5">
-                      {profile.skills.slice(0, 7).map((skill) => (
-                        <span
-                          key={skill}
-                          className="rounded-full bg-[var(--bg-card)] px-2.5 py-1 text-[11px] font-medium text-[var(--text-primary)] shadow-2xs"
-                        >
-                          {skill}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Accordion Item 2: Academic Standing */}
-                <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-sheet)] p-3">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setExpandedDetail(expandedDetail === 'academic' ? 'experience' : 'academic')
-                    }
-                    className="flex w-full cursor-pointer items-center justify-between text-left"
-                  >
-                    <span className="text-xs font-semibold text-[var(--text-primary)]">
-                      Academic & University
-                    </span>
-                    <span className="text-[11px] text-[var(--text-muted)]">
-                      Sem {profile.semester}
-                    </span>
-                  </button>
-                  {expandedDetail === 'academic' && (
-                    <p className="mt-1.5 text-[11px] leading-relaxed text-[var(--text-secondary)]">
-                      {profile.university} • {profile.major} • GPA {profile.gpa.toFixed(2)} / 4.00
-                    </p>
-                  )}
-                </div>
-
-                {/* Accordion Item 3: Experience */}
-                <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-sheet)] p-3">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setExpandedDetail(expandedDetail === 'experience' ? 'skills' : 'experience')
-                    }
-                    className="flex w-full cursor-pointer items-center justify-between text-left"
-                  >
-                    <span className="text-xs font-semibold text-[var(--text-primary)]">
-                      Portfolio & Experience
-                    </span>
-                    <span className="text-[11px] text-[var(--text-muted)]">
-                      {profile.experiences.length} listed
-                    </span>
-                  </button>
-                  {expandedDetail === 'experience' && (
-                    <p className="mt-1.5 text-[11px] leading-relaxed text-[var(--text-secondary)]">
-                      {profile.experiences[0]
-                        ? `${profile.experiences[0].role} at ${profile.experiences[0].organization}`
-                        : 'Add campus or project experience to improve match scores.'}
-                    </p>
-                  )}
-                </div>
-              </div>
+            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[var(--border-subtle)]">
+              <div
+                className="h-full rounded-full bg-amber-500 transition-all duration-500 dark:bg-amber-400"
+                style={{ width: `${docReadyPct}%` }}
+              />
             </div>
+            <p className="mt-2 text-xs text-[var(--text-secondary)]">
+              {appliedCount} application(s) submitted
+            </p>
+          </div>
+        </button>
 
-            <button
-              type="button"
-              onClick={() => navigate('/profile')}
-              className="mt-3 inline-flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-sheet)] py-2 text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-subtle)]"
+        <button
+          type="button"
+          onClick={() => navigate('/discover')}
+          className="careerku-card flex cursor-pointer flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-[var(--border-strong)]"
+        >
+          <div className="flex items-center justify-between gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+              Upcoming Deadlines
+            </span>
+            <span
+              className={`flex h-9 w-9 items-center justify-center rounded-xl ${
+                urgentDeadlines.length > 0
+                  ? 'bg-rose-500/15 text-rose-700 dark:text-rose-300'
+                  : 'bg-[var(--bg-subtle)] text-[var(--text-secondary)]'
+              }`}
             >
-              <span>Update Skills & GPA</span>
-              <ArrowUpRight className="h-3.5 w-3.5" />
-            </button>
+              <CalendarClock className="h-4 w-4" />
+            </span>
           </div>
-        </div>
-
-        {/* ----------------------------------------------------------------- */}
-        {/* CENTER COLUMN (Cols 4-9): 2 Ref-1 Metric Cards + Ref-2 Pastel Row */}
-        {/* ----------------------------------------------------------------- */}
-        <div className="flex flex-col gap-4 lg:col-span-6">
-          {/* Top Sub-Row: Category Progress Stems (Ref 1) + Radial Readiness Ring (Ref 1) */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            {/* Card 1: Match Breakdown Vertical Stems (Crextio "Progress" Card) */}
-            <div className="careerku-card flex flex-col justify-between rounded-[26px] p-5">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="text-base font-medium text-[var(--text-primary)]">
-                    Match Breakdown
-                  </h3>
-                  <div className="mt-1 flex items-baseline gap-2">
-                    <span className="text-3xl font-light tracking-tight text-[var(--text-primary)]">
-                      {avgScore}%
-                    </span>
-                    <span className="text-[11px] leading-tight text-[var(--text-secondary)]">
-                      Average fit
-                      <br />
-                      across listings
-                    </span>
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => navigate('/discover')}
-                  aria-label="Explore opportunities"
-                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--bg-sheet)] text-[var(--text-primary)] hover:scale-105"
-                >
-                  <ArrowUpRight className="h-4 w-4" />
-                </button>
-              </div>
-
-              {/* Vertical Pill Stems with Floating Highlight Pill */}
-              <div className="mt-6 grid grid-cols-6 items-end gap-2 pt-4">
-                {matchBars.map((bar) => (
-                  <div key={bar.label} className="flex flex-col items-center gap-2">
-                    <div className="relative flex h-24 w-full items-end justify-center">
-                      {bar.highlight && (
-                        <span className="absolute -top-5 rounded-full bg-[#f5d061] px-2 py-0.5 text-[10px] font-bold text-[#191b1e] shadow-2xs">
-                          {bar.value}%
-                        </span>
-                      )}
-                      <div
-                        className={`w-2 rounded-full transition-all duration-500 ${
-                          bar.highlight
-                            ? 'bg-[#f5d061]'
-                            : 'bg-[#191b1e] dark:bg-[#f1f2ea]'
-                        }`}
-                        style={{ height: `${Math.max(20, Math.round(bar.value * 0.78))}px` }}
-                      />
-                    </div>
-                    <span
-                      className={`h-1.5 w-1.5 rounded-full ${
-                        bar.highlight ? 'bg-[#f5d061]' : 'bg-[var(--text-muted)]'
-                      }`}
-                    />
-                    <span className="text-[10px] font-medium text-[var(--text-secondary)]">
-                      {bar.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Card 2: AI & Document Readiness Ring (Crextio "Time tracker" Card) */}
-            <div className="careerku-card flex flex-col justify-between rounded-[26px] p-5">
-              <div className="flex items-start justify-between">
-                <h3 className="text-base font-medium text-[var(--text-primary)]">
-                  Readiness Score
-                </h3>
-                <button
-                  type="button"
-                  onClick={() => navigate('/analyze')}
-                  aria-label="Open AI Skill Gap Analysis"
-                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--bg-sheet)] text-[var(--text-primary)] hover:scale-105"
-                >
-                  <ArrowUpRight className="h-4 w-4" />
-                </button>
-              </div>
-
-              {/* Center Radial Ring */}
-              <div className="my-2 flex items-center justify-center">
-                <div className="relative flex h-34 w-34 items-center justify-center">
-                  <svg className="h-full w-full -rotate-90" viewBox="0 0 128 128">
-                    <circle
-                      cx="64"
-                      cy="64"
-                      r={ringRadius}
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="6"
-                      strokeDasharray="2 5"
-                      className="text-[var(--border-strong)]"
-                    />
-                    <circle
-                      cx="64"
-                      cy="64"
-                      r={ringRadius}
-                      fill="none"
-                      stroke="#f5d061"
-                      strokeWidth="8"
-                      strokeLinecap="round"
-                      strokeDasharray={ringCircumference}
-                      strokeDashoffset={ringOffset}
-                    />
-                  </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                    <span className="text-2xl font-semibold tracking-tight text-[var(--text-primary)]">
-                      {avgScore}%
-                    </span>
-                    <span className="text-[10px] font-medium text-[var(--text-muted)]">
-                      Match Index
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Bottom Controls */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => navigate('/analyze')}
-                    className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-[var(--bg-sheet)] px-3 py-1.5 text-[11px] font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-subtle)]"
-                  >
-                    <Sparkles className="h-3 w-3 text-[var(--accent-indigo)]" />
-                    <span>Analyze AI</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/tracker')}
-                    className="inline-flex cursor-pointer items-center gap-1 rounded-full bg-[var(--bg-sheet)] px-3 py-1.5 text-[11px] font-semibold text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                  >
-                    <span>Docs</span>
-                  </button>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => navigate('/tracker')}
-                  aria-label="Open Document Tracker"
-                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full bg-[#191b1e] text-white dark:bg-[#f1f2ea] dark:text-[#181a18]"
-                >
-                  <ClipboardCheck className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </div>
+          <div className="mt-3">
+            <p className="text-3xl font-bold tabular-nums text-[var(--text-primary)]">
+              {urgentDeadlines.length}
+            </p>
+            <p className="mt-1 text-xs text-[var(--text-secondary)]">
+              Due within 14 days • {trackedApplications.length} tracked
+            </p>
           </div>
+        </button>
+      </div>
 
-          {/* Bottom Sub-Row: Ongoing Applications with 3 Pastel Cards (Ref 2 Signature!) */}
-          <div className="careerku-card flex flex-1 flex-col justify-between rounded-[26px] p-5">
-            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-              <div className="flex flex-wrap items-center gap-1.5">
-                <span className="rounded-full bg-[#191b1e] px-3.5 py-1.5 text-xs font-semibold text-white dark:bg-[#f1f2ea] dark:text-[#181a18]">
+      {/* =================================================================== */}
+      {/* 3. PRIMARY WORKSPACE ROW: ONGOING APPLICATIONS + DOCUMENT CHECKLIST */}
+      {/* =================================================================== */}
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
+        {/* Left: Ongoing Applications (8 cols) */}
+        <div className="careerku-card flex flex-col justify-between rounded-3xl p-5 sm:p-6 xl:col-span-8">
+          <div>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-bold text-[var(--text-primary)]">
                   Ongoing Applications
-                </span>
-                {(['all', 'internship', 'scholarship', 'competition'] as const).map((cat) => (
-                  <button
-                    key={cat}
-                    type="button"
-                    onClick={() => setCategoryFilter(cat)}
-                    className={`cursor-pointer rounded-full px-2.5 py-1 text-[11px] font-semibold capitalize transition-colors ${
-                      categoryFilter === cat
-                        ? 'bg-[var(--bg-subtle)] text-[var(--text-primary)]'
-                        : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
-                    }`}
-                  >
-                    {cat}
-                  </button>
-                ))}
+                </h2>
+                <p className="mt-0.5 text-xs text-[var(--text-secondary)]">
+                  Click any card to inspect requirements and match details
+                </p>
               </div>
 
               <button
                 type="button"
                 onClick={() => navigate('/discover')}
-                title="Add more opportunities to Tracker"
-                className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--bg-sheet)] text-[var(--text-primary)] hover:bg-[var(--bg-subtle)]"
+                className="careerku-btn-secondary inline-flex cursor-pointer items-center gap-1 rounded-full px-3.5 py-1.5 text-xs font-semibold"
               >
-                <Plus className="h-4 w-4" />
+                <Plus className="h-3.5 w-3.5" />
+                <span>Browse</span>
               </button>
             </div>
 
+            {/* Clean Category Filter Tabs */}
+            <div className="mt-4 flex flex-wrap items-center gap-2">
+              {(['all', 'internship', 'scholarship', 'competition'] as const).map((cat) => {
+                const label = cat === 'all' ? 'All' : getCategoryLabel(cat)
+                const active = categoryFilter === cat
+                return (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setCategoryFilter(cat)}
+                    className={`cursor-pointer rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors ${
+                      active
+                        ? 'bg-[#191b1e] text-white dark:bg-[#f1f2ea] dark:text-[#181a18]'
+                        : 'border border-[var(--border-subtle)] bg-[var(--bg-sheet)] text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)]'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                )
+              })}
+            </div>
+
             {trackedCards.length === 0 ? (
-              <div className="flex flex-col items-center justify-center rounded-2xl bg-[var(--bg-sheet)] p-8 text-center">
+              <div className="mt-5 flex flex-col items-center justify-center rounded-2xl border border-dashed border-[var(--border-strong)] bg-[var(--bg-sheet)] p-8 text-center">
                 <Layers className="mb-2 h-6 w-6 text-[var(--text-muted)]" />
-                <p className="text-xs font-semibold text-[var(--text-primary)]">
+                <p className="text-sm font-semibold text-[var(--text-primary)]">
                   No applications tracked in this category yet
+                </p>
+                <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                  Explore verified opportunities and save them to start tracking deadlines.
                 </p>
                 <button
                   type="button"
                   onClick={() => navigate('/discover')}
-                  className="mt-3 cursor-pointer rounded-full bg-[#191b1e] px-4 py-1.5 text-xs font-semibold text-white dark:bg-[#f1f2ea] dark:text-[#181a18]"
+                  className="careerku-btn-primary mt-4 cursor-pointer rounded-full px-4 py-2 text-xs font-semibold"
                 >
                   Browse Opportunities
                 </button>
               </div>
             ) : (
-              <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                {trackedCards.map((item, idx) => {
-                  const theme = PASTEL_CARD_THEMES[idx % PASTEL_CARD_THEMES.length]
+              <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+                {trackedCards.map((item) => {
+                  const accent = CATEGORY_ACCENTS[item.opp.category]
+                  const matchClass = MATCH_BADGE_CLASSES[item.opp.match.tier]
+                  const isUrgent = item.daysLeft <= 14
+
                   return (
                     <div
                       key={item.opp.id}
@@ -811,53 +618,73 @@ export function DashboardPage() {
                           openOpportunityDetail(item.opp.id)
                         }
                       }}
-                      className={`group flex cursor-pointer flex-col justify-between rounded-[22px] p-4 transition-transform duration-200 hover:-translate-y-1 ${theme.cardBg}`}
+                      className="group flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-sheet)] transition-all hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:shadow-sm"
                     >
-                      <div>
-                        {/* Top Date Pill + Org Initials */}
-                        <div className="flex items-center justify-between gap-1.5">
-                          <span
-                            className={`rounded-full border px-2.5 py-0.5 text-[10px] font-semibold ${theme.pillBg}`}
-                          >
-                            {formatDateID(item.opp.deadline)}
-                          </span>
-                          <span
-                            className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white shadow-2xs"
-                            style={{ backgroundColor: item.opp.orgAccent }}
-                          >
-                            {item.opp.orgInitials}
-                          </span>
+                      {/* Subtle Top Category Accent Bar */}
+                      <div className={`h-[3px] w-full ${accent.topBar}`} />
+
+                      <div className="flex flex-1 flex-col justify-between p-4">
+                        <div>
+                          {/* Top Row: Org Initials + Match Score */}
+                          <div className="flex items-center justify-between gap-2">
+                            <div className="flex min-w-0 items-center gap-2">
+                              <span
+                                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
+                                style={{ backgroundColor: item.opp.orgAccent }}
+                              >
+                                {item.opp.orgInitials}
+                              </span>
+                              <span className="truncate text-xs font-semibold text-[var(--text-secondary)]">
+                                {item.opp.organization}
+                              </span>
+                            </div>
+                            <span
+                              className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums ${matchClass}`}
+                            >
+                              {item.opp.match.score}% Match
+                            </span>
+                          </div>
+
+                          {/* Title (2 lines) & Category */}
+                          <h3 className="mt-3 line-clamp-2 text-sm font-bold leading-snug text-[var(--text-primary)] group-hover:underline">
+                            {item.opp.title}
+                          </h3>
+                          <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                            {getCategoryLabel(item.opp.category)} • {item.opp.workMode}
+                          </p>
                         </div>
 
-                        {/* Title & Organization */}
-                        <h4 className="mt-3 line-clamp-1 text-sm font-bold">
-                          {item.opp.title}
-                        </h4>
-                        <p className="mt-0.5 truncate text-[11px] opacity-75">
-                          {item.opp.organization}
-                        </p>
-                      </div>
+                        {/* Document Progress + Footer */}
+                        <div className="mt-4 pt-2">
+                          <div className="mb-1.5 flex items-center justify-between text-xs">
+                            <span className="font-medium text-[var(--text-secondary)]">
+                              Documents
+                            </span>
+                            <span className="font-semibold tabular-nums text-[var(--text-primary)]">
+                              {item.doneCount}/{item.totalCount} ({item.progressPct}%)
+                            </span>
+                          </div>
+                          <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--border-subtle)]">
+                            <div
+                              className={`h-full rounded-full transition-all duration-500 ${accent.topBar}`}
+                              style={{ width: `${Math.max(8, item.progressPct)}%` }}
+                            />
+                          </div>
 
-                      {/* Progress Bar & Bottom Meta */}
-                      <div className="mt-4">
-                        <div className="mb-1.5 flex items-center justify-between text-[10px] font-semibold">
-                          <span className="capitalize">{item.app.status}</span>
-                          <span>{item.progressPct}% Docs</span>
-                        </div>
-                        <div className={`h-1.5 w-full overflow-hidden rounded-full ${theme.barTrack}`}>
-                          <div
-                            className={`h-full rounded-full transition-all duration-500 ${theme.barFill}`}
-                            style={{ width: `${Math.max(12, item.progressPct)}%` }}
-                          />
-                        </div>
-
-                        <div className="mt-3 flex items-center justify-between">
-                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${theme.badgeBg}`}>
-                            {item.opp.match.score}% Match
-                          </span>
-                          <span className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${theme.badgeBg}`}>
-                            {item.daysLeft}d left
-                          </span>
+                          <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border-subtle)] pt-3">
+                            <span className="rounded-full bg-[var(--bg-card)] px-2.5 py-0.5 text-xs font-semibold text-[var(--text-primary)] shadow-2xs">
+                              {getStatusLabel(item.app.status)}
+                            </span>
+                            <span
+                              className={`text-xs font-semibold tabular-nums ${
+                                isUrgent
+                                  ? 'text-rose-600 dark:text-rose-300'
+                                  : 'text-[var(--text-secondary)]'
+                              }`}
+                            >
+                              Due {formatDateID(item.opp.deadline)} ({item.daysLeft}d)
+                            </span>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -868,120 +695,225 @@ export function DashboardPage() {
           </div>
         </div>
 
-        {/* ----------------------------------------------------------------- */}
-        {/* RIGHT COLUMN (Cols 10-12): Prep Summary + Dark Checklist (Ref 1!) */}
-        {/* ----------------------------------------------------------------- */}
-        <div className="flex flex-col justify-between rounded-[26px] border border-[var(--border-subtle)] bg-[var(--bg-card)] p-4 lg:col-span-3">
-          {/* Top Onboarding / Prep Header */}
-          <div className="px-1 pb-4 pt-1">
-            <div className="flex items-baseline justify-between">
-              <h3 className="text-base font-medium text-[var(--text-primary)]">
-                Checklist Prep
-              </h3>
-              <span className="text-2xl font-light tracking-tight text-[var(--text-primary)]">
-                {docReadyPct}%
+        {/* Right: Interactive Document Checklist (4 cols) */}
+        <div className="careerku-card flex flex-col justify-between rounded-3xl p-5 sm:p-6 xl:col-span-4">
+          <div>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h2 className="text-base font-bold text-[var(--text-primary)]">
+                  Document Checklist
+                </h2>
+                <p className="mt-0.5 text-xs text-[var(--text-secondary)]">
+                  Click an item to mark it complete
+                </p>
+              </div>
+              <span className="shrink-0 rounded-full bg-[var(--bg-sheet)] px-3 py-1 text-sm font-bold tabular-nums text-[var(--text-primary)]">
+                {completedDocsCount}/{allTrackedDocs.length} done
               </span>
             </div>
 
-            <div className="mt-3 grid grid-cols-3 text-[10px] font-medium text-[var(--text-secondary)]">
-              <span>Docs</span>
-              <span>AI Gaps</span>
-              <span>Submitted</span>
-            </div>
-            <div className="mt-1 flex h-6 w-full gap-1">
-              <div className="flex flex-1 items-center justify-center rounded-lg bg-[#f5d061] text-[10px] font-bold text-[#191b1e]">
-                Task
-              </div>
-              <div className="w-[28%] rounded-lg bg-[#191b1e] dark:bg-[#f1f2ea]" />
-              <div className="w-[18%] rounded-lg bg-[var(--border-strong)]" />
-            </div>
-          </div>
-
-          {/* Stacked Dark Charcoal Checklist Card (Crextio "Onboarding Task 2/8" Card) */}
-          <div className="flex flex-1 flex-col justify-between rounded-[24px] bg-[#191b1e] p-5 text-white shadow-lg dark:bg-[#141614] dark:ring-1 dark:ring-white/10">
-            <div>
-              <div className="mb-4 flex items-baseline justify-between">
-                <div>
-                  <h4 className="text-sm font-medium text-white">Document Tasks</h4>
-                  <p className="text-[11px] text-white/55">Click any item to toggle done</p>
-                </div>
-                <span className="text-2xl font-light tracking-tight text-white">
-                  {completedDocsCount}/{allTrackedDocs.length}
+            <div className="mt-3">
+              <div className="mb-1 flex items-center justify-between text-xs">
+                <span className="text-[var(--text-secondary)]">Overall completion</span>
+                <span className="font-semibold tabular-nums text-[var(--text-primary)]">
+                  {docReadyPct}%
                 </span>
               </div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--border-subtle)]">
+                <div
+                  className="h-full rounded-full bg-emerald-500 transition-all duration-500 dark:bg-emerald-400"
+                  style={{ width: `${docReadyPct}%` }}
+                />
+              </div>
+            </div>
 
-              <ul className="space-y-2.5">
-                {allTrackedDocs.slice(0, 5).map((doc) => (
+            {prioritizedChecklistDocs.length === 0 ? (
+              <div className="mt-4 rounded-2xl border border-dashed border-[var(--border-strong)] bg-[var(--bg-sheet)] p-6 text-center">
+                <p className="text-sm font-semibold text-[var(--text-primary)]">
+                  No document tasks yet
+                </p>
+                <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                  Save an opportunity to generate its required application checklist.
+                </p>
+              </div>
+            ) : (
+              <ul className="mt-4 space-y-2.5">
+                {prioritizedChecklistDocs.map((doc) => (
                   <li key={`${doc.opportunityId}-${doc.docId}`}>
                     <button
                       type="button"
                       onClick={() => toggleDocumentItem(doc.opportunityId, doc.docId)}
-                      className="group flex w-full cursor-pointer items-center justify-between gap-3 rounded-2xl bg-white/[0.05] px-3 py-2.5 text-left transition-colors hover:bg-white/[0.1]"
+                      className="group flex w-full cursor-pointer items-start gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-sheet)] px-3.5 py-3 text-left transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--bg-subtle)]"
                     >
-                      <div className="flex min-w-0 items-center gap-2.5">
-                        <span
-                          className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors ${
-                            doc.completed
-                              ? 'bg-white/12 text-white/70'
-                              : 'bg-white text-[#191b1e]'
-                          }`}
-                        >
-                          <FileText className="h-3.5 w-3.5" />
-                        </span>
-                        <div className="min-w-0">
-                          <p
-                            className={`truncate text-xs font-medium ${
-                              doc.completed ? 'text-white/45 line-through' : 'text-white'
-                            }`}
-                          >
-                            {doc.docLabel}
-                          </p>
-                          <p className="truncate text-[10px] text-white/50">
-                            {doc.organization} • {formatDateID(doc.deadline)}
-                          </p>
-                        </div>
-                      </div>
-
                       <span
-                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-all ${
+                        className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-colors ${
                           doc.completed
-                            ? 'bg-[#f5d061] text-[#191b1e]'
-                            : 'border border-white/25 bg-white/5 text-transparent group-hover:border-white/50'
+                            ? 'bg-emerald-500 text-white dark:bg-emerald-400 dark:text-[#111311]'
+                            : 'border-2 border-[var(--border-strong)] bg-[var(--bg-card)] text-transparent group-hover:border-[var(--accent-indigo)]'
                         }`}
                       >
                         <Check className="h-3 w-3" strokeWidth={3} />
                       </span>
+
+                      <div className="min-w-0 flex-1">
+                        <p
+                          className={`line-clamp-2 text-sm font-medium leading-snug ${
+                            doc.completed
+                              ? 'text-[var(--text-muted)] line-through'
+                              : 'text-[var(--text-primary)]'
+                          }`}
+                        >
+                          {doc.docLabel}
+                        </p>
+                        <p className="mt-0.5 truncate text-xs text-[var(--text-secondary)]">
+                          {doc.organization} • Due {formatDateID(doc.deadline)}
+                        </p>
+                      </div>
                     </button>
                   </li>
                 ))}
               </ul>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => navigate('/tracker')}
+            className="careerku-btn-secondary mt-5 inline-flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-full py-2.5 text-xs font-semibold sm:text-sm"
+          >
+            <span>Open Full Document Tracker</span>
+            <ArrowUpRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* =================================================================== */}
+      {/* 4. ANALYTICS & AI GUIDANCE ROW                                      */}
+      {/* =================================================================== */}
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
+        {/* Left: Match & Readiness Breakdown (7 cols) */}
+        <div className="careerku-card flex flex-col justify-between rounded-3xl p-5 sm:p-6 xl:col-span-7">
+          <div>
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <h2 className="text-base font-bold text-[var(--text-primary)] sm:text-lg">
+                  Match & Readiness Breakdown
+                </h2>
+                <p className="mt-0.5 text-xs text-[var(--text-secondary)]">
+                  How your current profile scores across opportunity types and criteria
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate('/analyze')}
+                className="careerku-btn-secondary inline-flex cursor-pointer items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold"
+              >
+                <Sparkles className="h-3.5 w-3.5 text-[var(--accent-indigo)]" />
+                <span>AI Analysis</span>
+              </button>
             </div>
 
-            <button
-              type="button"
-              onClick={() => navigate('/tracker')}
-              className="mt-4 inline-flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-full bg-white/10 py-2 text-xs font-semibold text-white transition-colors hover:bg-white/18"
-            >
-              <span>Open Full Document Tracker</span>
-              <ArrowUpRight className="h-3.5 w-3.5" />
-            </button>
+            <div className="mt-5 space-y-4">
+              {breakdownRows.map((row) => (
+                <div key={row.label}>
+                  <div className="mb-1.5 flex items-baseline justify-between gap-3">
+                    <div className="flex flex-wrap items-baseline gap-x-2">
+                      <span className="text-sm font-semibold text-[var(--text-primary)]">
+                        {row.label}
+                      </span>
+                      <span className="text-xs text-[var(--text-secondary)]">{row.helper}</span>
+                    </div>
+                    <span className="shrink-0 text-sm font-bold tabular-nums text-[var(--text-primary)]">
+                      {row.value}%
+                    </span>
+                  </div>
+                  <div className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--bg-subtle)]">
+                    <div
+                      className={`h-full rounded-full transition-all duration-500 ${getBarToneClass(row.value)}`}
+                      style={{ width: `${Math.max(4, row.value)}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right: AI Recommendations (5 cols) */}
+        <div className="careerku-card flex flex-col justify-between rounded-3xl p-5 sm:p-6 xl:col-span-5">
+          <div>
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div className="flex items-center gap-2">
+                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--accent-indigo-soft)] text-[var(--accent-indigo)]">
+                  <Sparkles className="h-4 w-4" />
+                </span>
+                <h2 className="text-base font-bold text-[var(--text-primary)] sm:text-lg">
+                  AI Recommendations
+                </h2>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => navigate('/analyze')}
+                className="cursor-pointer text-xs font-semibold text-[var(--accent-indigo)] hover:underline"
+              >
+                Open AI Lab
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {aiRecommendations.map((item, idx) => {
+                const Icon = idx === 0 ? Sparkles : idx === 1 ? Trophy : Award
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={item.onClick}
+                    className="group flex w-full cursor-pointer items-start gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-sheet)] p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[var(--border-strong)]"
+                  >
+                    <span
+                      className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${item.iconBgClass}`}
+                    >
+                      <Icon className="h-4 w-4" />
+                    </span>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span
+                          className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${item.badgeClass}`}
+                        >
+                          {item.badge}
+                        </span>
+                        <ArrowUpRight className="h-4 w-4 shrink-0 text-[var(--text-muted)] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[var(--text-primary)]" />
+                      </div>
+                      <p className="mt-2 text-sm font-bold leading-snug text-[var(--text-primary)]">
+                        {item.title}
+                      </p>
+                      <p className="mt-1 text-xs leading-relaxed text-[var(--text-secondary)]">
+                        {item.message}
+                      </p>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
           </div>
         </div>
       </div>
 
       {/* =================================================================== */}
-      {/* BOTTOM BENTO ROW: Monthly Deadline Calendar + AI Alerts Inbox       */}
+      {/* 5. DEADLINES & PROFILE SNAPSHOT ROW                                 */}
       {/* =================================================================== */}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-12">
-        {/* Left/Center (Cols 1-7): Monthly Deadline Calendar Grid (Ref 2) + Event Pills (Ref 1) */}
-        <div className="careerku-card rounded-[26px] p-5 sm:p-6 lg:col-span-7">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <h3 className="text-base font-bold text-[var(--text-primary)]">
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
+        {/* Left: Deadline Calendar (8 cols) */}
+        <div className="careerku-card rounded-3xl p-5 sm:p-6 xl:col-span-8">
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-2.5">
+              <h2 className="text-base font-bold text-[var(--text-primary)] sm:text-lg">
                 Deadline Calendar
-              </h3>
-              <span className="rounded-full bg-[var(--bg-sheet)] px-2.5 py-0.5 text-[11px] font-semibold text-[var(--text-secondary)]">
-                {calendarData.monthEvents.length} deadlines this month
+              </h2>
+              <span className="rounded-full bg-[var(--bg-sheet)] px-3 py-1 text-xs font-semibold text-[var(--text-secondary)]">
+                {calendarData.monthEvents.length} deadlines
               </span>
             </div>
 
@@ -994,7 +926,7 @@ export function DashboardPage() {
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
-              <span className="min-w-[125px] text-center text-xs font-bold text-[var(--text-primary)]">
+              <span className="min-w-[130px] text-center text-sm font-bold text-[var(--text-primary)]">
                 {MONTH_NAMES[calendarMonth.month]} {calendarMonth.year}
               </span>
               <button
@@ -1008,10 +940,10 @@ export function DashboardPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-12">
-            {/* Calendar Tile Grid (Cols 1-7) */}
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+            {/* Calendar Tile Grid */}
             <div className="md:col-span-7">
-              <div className="mb-2 grid grid-cols-7 gap-1.5 text-center text-[10px] font-semibold text-[var(--text-muted)]">
+              <div className="mb-2 grid grid-cols-7 gap-1.5 text-center text-xs font-semibold text-[var(--text-secondary)]">
                 {WEEKDAYS.map((day) => (
                   <span key={day}>{day}</span>
                 ))}
@@ -1028,24 +960,22 @@ export function DashboardPage() {
                       key={cell.day}
                       type="button"
                       onClick={() =>
-                        primaryDeadline
-                          ? openOpportunityDetail(primaryDeadline.opp.id)
-                          : undefined
+                        primaryDeadline ? openOpportunityDetail(primaryDeadline.opp.id) : undefined
                       }
                       title={
                         primaryDeadline
                           ? `${primaryDeadline.opp.title} (${primaryDeadline.opp.organization})`
                           : undefined
                       }
-                      className={`relative flex h-10 items-center justify-center rounded-xl text-xs font-semibold transition-transform ${
+                      className={`relative flex h-10 items-center justify-center rounded-xl text-xs font-semibold tabular-nums transition-transform ${
                         primaryDeadline
-                          ? `cursor-pointer shadow-xs hover:scale-105 ${primaryDeadline.colorClass}`
+                          ? `cursor-pointer hover:scale-105 ${primaryDeadline.tileClass}`
                           : 'bg-[var(--bg-sheet)] text-[var(--text-secondary)]'
                       }`}
                     >
                       <span>{cell.day}</span>
                       {cell.deadlines.length > 1 && (
-                        <span className="absolute right-1 top-1 h-1.5 w-1.5 rounded-full bg-current" />
+                        <span className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-current" />
                       )}
                     </button>
                   )
@@ -1053,62 +983,65 @@ export function DashboardPage() {
               </div>
 
               {/* Legend */}
-              <div className="mt-3 flex flex-wrap items-center gap-3 text-[10px] font-medium text-[var(--text-secondary)]">
-                <span className="inline-flex items-center gap-1">
-                  <span className="h-2.5 w-2.5 rounded-xs bg-[#7ab8ff]" /> Internship
+              <div className="mt-4 flex flex-wrap items-center gap-4 text-xs font-medium text-[var(--text-secondary)]">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-sky-500" /> Internship
                 </span>
-                <span className="inline-flex items-center gap-1">
-                  <span className="h-2.5 w-2.5 rounded-xs bg-[#f6d365]" /> Scholarship
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-500" /> Scholarship
                 </span>
-                <span className="inline-flex items-center gap-1">
-                  <span className="h-2.5 w-2.5 rounded-xs bg-[#f48b94]" /> Competition
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-2.5 w-2.5 rounded-full bg-rose-500" /> Competition
                 </span>
               </div>
             </div>
 
-            {/* Monthly Schedule Timeline Pills (Cols 8-12, Ref 1 Timeline Style) */}
-            <div className="flex flex-col justify-between rounded-2xl bg-[var(--bg-sheet)] p-4 md:col-span-5">
+            {/* Month Schedule List */}
+            <div className="flex flex-col justify-between rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-sheet)] p-4 md:col-span-5">
               <div>
-                <p className="mb-3 text-xs font-bold text-[var(--text-primary)]">
+                <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[var(--text-secondary)]">
                   Month Schedule
                 </p>
                 {calendarData.monthEvents.length === 0 ? (
-                  <p className="py-6 text-center text-xs text-[var(--text-muted)]">
+                  <p className="py-8 text-center text-xs leading-relaxed text-[var(--text-secondary)]">
                     No deadlines in {MONTH_NAMES[calendarMonth.month]}. Use the arrows to check
                     adjacent months.
                   </p>
                 ) : (
                   <div className="space-y-2.5">
-                    {calendarData.monthEvents.slice(0, 3).map((ev, idx) => (
-                      <button
-                        key={`${ev.opp.id}-${ev.day}`}
-                        type="button"
-                        onClick={() => openOpportunityDetail(ev.opp.id)}
-                        className={`flex w-full cursor-pointer items-center justify-between gap-2.5 rounded-2xl p-3 text-left transition-transform hover:scale-[1.01] ${
-                          idx === 0
-                            ? 'bg-[#191b1e] text-white shadow-sm dark:bg-[#f1f2ea] dark:text-[#181a18]'
-                            : 'bg-[var(--bg-card)] text-[var(--text-primary)] shadow-2xs'
-                        }`}
-                      >
-                        <div className="min-w-0">
-                          <p className="truncate text-xs font-bold">{ev.opp.title}</p>
-                          <p
-                            className={`truncate text-[10px] ${
-                              idx === 0 ? 'opacity-75' : 'text-[var(--text-secondary)]'
-                            }`}
-                          >
-                            {ev.opp.organization} • {MONTH_NAMES[calendarMonth.month].slice(0, 3)}{' '}
-                            {ev.day}
-                          </p>
-                        </div>
-                        <span
-                          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
-                          style={{ backgroundColor: ev.opp.orgAccent }}
+                    {calendarData.monthEvents.slice(0, 4).map((ev) => {
+                      const accent = CATEGORY_ACCENTS[ev.opp.category]
+                      return (
+                        <button
+                          key={`${ev.opp.id}-${ev.day}`}
+                          type="button"
+                          onClick={() => openOpportunityDetail(ev.opp.id)}
+                          className="flex w-full cursor-pointer items-start justify-between gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-card)] p-3 text-left transition-colors hover:border-[var(--border-strong)]"
                         >
-                          {ev.opp.orgInitials}
-                        </span>
-                      </button>
-                    ))}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2">
+                              <span className={`h-2 w-2 shrink-0 rounded-full ${accent.dot}`} />
+                              <span className="text-xs font-bold tabular-nums text-[var(--text-secondary)]">
+                                {MONTH_NAMES[calendarMonth.month].slice(0, 3)} {ev.day}
+                              </span>
+                            </div>
+                            <p className="mt-1 line-clamp-2 text-sm font-semibold leading-snug text-[var(--text-primary)]">
+                              {ev.opp.title}
+                            </p>
+                            <p className="mt-0.5 truncate text-xs text-[var(--text-secondary)]">
+                              {ev.opp.organization}
+                            </p>
+                          </div>
+
+                          <span
+                            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
+                            style={{ backgroundColor: ev.opp.orgAccent }}
+                          >
+                            {ev.opp.orgInitials}
+                          </span>
+                        </button>
+                      )
+                    })}
                   </div>
                 )}
               </div>
@@ -1116,89 +1049,117 @@ export function DashboardPage() {
               <button
                 type="button"
                 onClick={() => navigate('/discover')}
-                className="mt-3 inline-flex items-center justify-between rounded-xl bg-[var(--bg-card)] px-3 py-2 text-[11px] font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-subtle)]"
+                className="mt-4 inline-flex w-full cursor-pointer items-center justify-between rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-card)] px-3.5 py-2.5 text-xs font-semibold text-[var(--text-primary)] hover:bg-[var(--bg-subtle)]"
               >
-                <span>View All Verified Deadlines</span>
-                <ArrowUpRight className="h-3.5 w-3.5" />
+                <span>View All Deadlines</span>
+                <ArrowUpRight className="h-4 w-4" />
               </button>
             </div>
           </div>
         </div>
 
-        {/* Right (Cols 8-12): AI Recommendations & Career Inbox (Ref 2 "Inbox" Style) */}
-        <div className="careerku-card flex flex-col justify-between rounded-[26px] p-5 sm:p-6 lg:col-span-5">
-          <div>
-            <div className="mb-4 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <h3 className="text-base font-bold text-[var(--text-primary)]">
-                  AI Career Inbox
-                </h3>
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--bg-sheet)] text-[var(--accent-indigo)]">
-                  <Sparkles className="h-3.5 w-3.5" />
-                </span>
+        {/* Right: Profile Snapshot (4 cols) */}
+        <div className="careerku-card flex flex-col justify-between rounded-3xl p-5 sm:p-6 xl:col-span-4">
+          <div className="space-y-4">
+            {/* Compact Identity Block */}
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex min-w-0 items-center gap-3.5">
+                <img
+                  src="/images/hero-campus.jpg"
+                  alt={profile.name}
+                  className="h-14 w-14 shrink-0 rounded-2xl object-cover object-[center_20%] ring-1 ring-[var(--border-subtle)]"
+                />
+                <div className="min-w-0">
+                  <h2 className="truncate text-base font-bold text-[var(--text-primary)]">
+                    {profile.name}
+                  </h2>
+                  <p className="truncate text-xs text-[var(--text-secondary)]">
+                    {profile.university}
+                  </p>
+                  <p className="truncate text-xs font-medium text-[var(--text-secondary)]">
+                    {profile.major}
+                  </p>
+                </div>
               </div>
 
               <button
                 type="button"
-                onClick={() => navigate('/analyze')}
-                className="cursor-pointer text-xs font-semibold text-[var(--accent-indigo)] hover:underline"
+                onClick={() => navigate('/profile')}
+                className="careerku-btn-secondary inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-full px-3 py-1.5 text-xs font-semibold"
               >
-                Open AI Lab
+                <UserRound className="h-3.5 w-3.5" />
+                <span>Edit</span>
               </button>
             </div>
 
-            <div className="space-y-2.5">
-              {aiInboxItems.map((item, idx) => {
-                const Icon = idx === 0 ? Sparkles : idx === 1 ? Trophy : Award
-                return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={item.onClick}
-                    className={`flex w-full cursor-pointer items-start justify-between gap-3 rounded-2xl p-4 text-left transition-all hover:-translate-y-0.5 ${
-                      item.featuredDark
-                        ? 'bg-[#191b1e] text-white shadow-md dark:bg-[#141614] dark:ring-1 dark:ring-white/10'
-                        : 'border border-[var(--border-subtle)] bg-[var(--bg-sheet)] text-[var(--text-primary)]'
-                    }`}
-                  >
-                    <div className="flex min-w-0 items-start gap-3">
-                      <span
-                        className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${
-                          item.featuredDark
-                            ? 'bg-[#f5d061] text-[#191b1e]'
-                            : 'bg-[var(--bg-card)] text-[var(--accent-indigo)] shadow-2xs'
-                        }`}
-                      >
-                        <Icon className="h-4 w-4" />
-                      </span>
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <p className="truncate text-xs font-bold">{item.title}</p>
-                        </div>
-                        <p
-                          className={`mt-1 line-clamp-2 text-[11px] leading-relaxed ${
-                            item.featuredDark ? 'text-white/75' : 'text-[var(--text-secondary)]'
-                          }`}
-                        >
-                          {item.message}
-                        </p>
-                      </div>
-                    </div>
+            {/* 2-Column Academic Summary Pills */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-sheet)] p-3">
+                <p className="text-xs font-medium text-[var(--text-secondary)]">Semester</p>
+                <p className="mt-1 text-base font-bold tabular-nums text-[var(--text-primary)]">
+                  Semester {profile.semester}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-sheet)] p-3">
+                <p className="text-xs font-medium text-[var(--text-secondary)]">Current GPA</p>
+                <p className="mt-1 text-base font-bold tabular-nums text-[var(--text-primary)]">
+                  {profile.gpa.toFixed(2)} / 4.00
+                </p>
+              </div>
+            </div>
 
-                    <span
-                      className={`shrink-0 rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${
-                        item.featuredDark
-                          ? 'bg-white/15 text-white'
-                          : 'bg-[var(--bg-card)] text-[var(--text-secondary)]'
-                      }`}
-                    >
-                      {item.badge}
-                    </span>
-                  </button>
-                )
-              })}
+            {/* Verified Skills */}
+            <div>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+                Verified Skills ({profile.skills.length})
+              </p>
+              <div className="flex flex-wrap gap-1.5">
+                {visibleSkills.map((skill) => (
+                  <span
+                    key={skill}
+                    className="rounded-full border border-[var(--border-subtle)] bg-[var(--bg-sheet)] px-2.5 py-1 text-xs font-medium text-[var(--text-primary)]"
+                  >
+                    {skill}
+                  </span>
+                ))}
+                {extraSkillCount > 0 && (
+                  <span className="rounded-full bg-[var(--bg-subtle)] px-2.5 py-1 text-xs font-semibold text-[var(--text-secondary)]">
+                    +{extraSkillCount} more
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {/* Latest Experience */}
+            <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-sheet)] p-3.5">
+              <p className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+                Latest Experience
+              </p>
+              {latestExperience ? (
+                <div className="mt-1.5">
+                  <p className="text-sm font-semibold text-[var(--text-primary)]">
+                    {latestExperience.role}
+                  </p>
+                  <p className="mt-0.5 text-xs text-[var(--text-secondary)]">
+                    {latestExperience.organization} • {latestExperience.period}
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-1.5 text-xs text-[var(--text-secondary)]">
+                  Add campus or project experience to strengthen your profile.
+                </p>
+              )}
             </div>
           </div>
+
+          <button
+            type="button"
+            onClick={() => navigate('/profile')}
+            className="careerku-btn-secondary mt-5 inline-flex w-full cursor-pointer items-center justify-center gap-1.5 rounded-full py-2.5 text-xs font-semibold sm:text-sm"
+          >
+            <span>Manage Profile & Skills</span>
+            <ArrowUpRight className="h-4 w-4" />
+          </button>
         </div>
       </div>
     </section>
