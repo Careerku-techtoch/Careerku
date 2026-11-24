@@ -938,12 +938,13 @@ export function WelcomePage() {
             })}
           </div>
         </section>
+      </main>
 
-        {/* ================================================================= */}
-        {/* SECTION 6: Rounded Dark Footer Card                               */}
-        {/* ================================================================= */}
-        <ScrollReveal delayMs={40} distancePx={40} scaleFrom={0.975}>
-          <footer className="rounded-[30px] bg-[#16181b] px-7 py-10 text-white sm:px-10 sm:py-12">
+      {/* ================================================================= */}
+      {/* SECTION 6: Full-Bleed Dark Footer                                 */}
+      {/* ================================================================= */}
+      <ScrollReveal delayMs={40} distancePx={24} blur={false}>
+        <footer className="w-full bg-[#16181b] px-6 py-12 text-white sm:px-10 sm:py-14 lg:px-12">
           <div className="flex flex-col items-start justify-between gap-6 border-b border-white/10 pb-8 sm:flex-row sm:items-center">
             <div className="flex items-center gap-3">
               <CareerkuLogo size="lg" inverted />
@@ -1046,8 +1047,7 @@ export function WelcomePage() {
             </div>
           </div>
         </footer>
-        </ScrollReveal>
-      </main>
+      </ScrollReveal>
     </div>
   )
 }
