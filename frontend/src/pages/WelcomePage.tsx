@@ -532,6 +532,18 @@ export function WelcomePage() {
 
             <button
               type="button"
+              onClick={() => navigate('/login')}
+              className={`inline-flex cursor-pointer items-center rounded-full border px-4 py-2.5 text-xs font-semibold transition-all duration-300 ${
+                isScrolled
+                  ? 'border-[var(--border-subtle)] bg-[var(--bg-sheet)] text-[var(--text-primary)] hover:bg-[var(--bg-subtle)]'
+                  : 'border-white/60 bg-white/85 text-[#181a1d] shadow-xs backdrop-blur-md hover:bg-white'
+              }`}
+            >
+              Log In
+            </button>
+
+            <button
+              type="button"
               onClick={() => navigate('/discover')}
               className={`inline-flex cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-xs font-semibold transition-all duration-300 ${
                 isScrolled

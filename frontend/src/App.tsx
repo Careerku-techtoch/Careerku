@@ -3,6 +3,7 @@ import { AppShell, OpportunityDetailDrawer } from '@/components'
 import { CareerkuProvider } from '@/hooks'
 import {
   AnalyzePage,
+  AuthPage,
   DashboardPage,
   DiscoverPage,
   ProfilePage,
@@ -23,6 +24,8 @@ export function App() {
     <CareerkuProvider>
       <Routes>
         <Route path="/" element={<WelcomePage />} />
+        <Route path="/login" element={<AuthPage initialMode="login" />} />
+        <Route path="/register" element={<AuthPage initialMode="register" />} />
         <Route element={<AppWorkspaceLayout />}>
           <Route path="/discover" element={<DiscoverPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />

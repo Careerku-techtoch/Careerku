@@ -1,4 +1,5 @@
 export { AnalyzePage } from './AnalyzePage'
+export { AuthPage } from './AuthPage'
 export { DashboardPage } from './DashboardPage'
 export { DiscoverPage } from './DiscoverPage'
 export { ProfilePage } from './ProfilePage'
