@@ -41,11 +41,10 @@ export function ScrollReveal({
         duration: 0.85,
         delay: delayMs / 1000,
         ease: 'power3.out',
-        clearProps: 'transform,filter',
         scrollTrigger: {
           trigger: node,
           start: 'top 88%',
-          once: true,
+          toggleActions: 'play none none reverse',
         },
       }
 

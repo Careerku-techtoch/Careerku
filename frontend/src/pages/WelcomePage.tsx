@@ -228,7 +228,7 @@ export function WelcomePage() {
           scrollTrigger: {
             trigger: '#about',
             start: 'top 84%',
-            once: true,
+            toggleActions: 'play none none reverse',
           },
         })
         gsap.from('[data-gsap="about-headline"]', {
@@ -239,7 +239,7 @@ export function WelcomePage() {
           scrollTrigger: {
             trigger: '#about',
             start: 'top 82%',
-            once: true,
+            toggleActions: 'play none none reverse',
           },
         })
         gsap.fromTo(
@@ -265,11 +265,10 @@ export function WelcomePage() {
           duration: 0.8,
           stagger: 0.1,
           ease: 'power3.out',
-          clearProps: 'transform',
           scrollTrigger: {
             trigger: '#features',
             start: 'top 84%',
-            once: true,
+            toggleActions: 'play none none reverse',
           },
         })
 
@@ -284,7 +283,7 @@ export function WelcomePage() {
             scrollTrigger: {
               trigger: '#features',
               start: 'top 84%',
-              once: true,
+              toggleActions: 'play none none reverse',
             },
             onUpdate: () => {
               el.textContent = `${Math.round(counter.value)}${suffix}`
@@ -301,7 +300,7 @@ export function WelcomePage() {
           scrollTrigger: {
             trigger: '#process',
             start: 'top 84%',
-            once: true,
+            toggleActions: 'play none none reverse',
           },
         })
         gsap.from('[data-gsap="process-arrow"]', {
@@ -312,21 +311,33 @@ export function WelcomePage() {
           scrollTrigger: {
             trigger: '[data-gsap="process-grid"]',
             start: 'top 84%',
-            once: true,
+            toggleActions: 'play none none reverse',
           },
         })
-        gsap.from('[data-gsap="process-item"]', {
-          y: 38,
+        gsap.from('[data-gsap="process-row-1"]', {
+          x: -48,
           opacity: 0,
           scale: 0.97,
-          duration: 0.75,
-          stagger: { each: 0.07, from: 'start' },
+          duration: 0.78,
+          stagger: { each: 0.09, from: 'start' },
           ease: 'power3.out',
-          clearProps: 'transform',
           scrollTrigger: {
             trigger: '[data-gsap="process-grid"]',
             start: 'top 84%',
-            once: true,
+            toggleActions: 'play none none reverse',
+          },
+        })
+        gsap.from('[data-gsap="process-row-2"]', {
+          x: 48,
+          opacity: 0,
+          scale: 0.97,
+          duration: 0.78,
+          stagger: { each: 0.09, from: 'end' },
+          ease: 'power3.out',
+          scrollTrigger: {
+            trigger: '[data-gsap="process-row-2"]',
+            start: 'top 88%',
+            toggleActions: 'play none none reverse',
           },
         })
         gsap.utils.toArray<HTMLElement>('[data-gsap="process-photo-parallax"]').forEach((el) => {
@@ -356,7 +367,7 @@ export function WelcomePage() {
           scrollTrigger: {
             trigger: '#voices',
             start: 'top 85%',
-            once: true,
+            toggleActions: 'play none none reverse',
           },
         })
         gsap.from('[data-gsap="voice-card"]', {
@@ -366,11 +377,10 @@ export function WelcomePage() {
           duration: 0.8,
           stagger: 0.1,
           ease: 'power3.out',
-          clearProps: 'transform',
           scrollTrigger: {
             trigger: '[data-gsap="voices-grid"]',
             start: 'top 85%',
-            once: true,
+            toggleActions: 'play none none reverse',
           },
         })
 
@@ -383,7 +393,7 @@ export function WelcomePage() {
           scrollTrigger: {
             trigger: '[data-gsap="footer"]',
             start: 'top 95%',
-            once: true,
+            toggleActions: 'play none none reverse',
           },
         })
       },
@@ -395,8 +405,11 @@ export function WelcomePage() {
 
   const highMatchCount = opportunities.filter((o) => o.match.tier === 'high').length
 
-  const renderProcessStepCard = (step: ProcessStep) => (
-    <div data-gsap="process-item" className="flex">
+  const renderProcessStepCard = (
+    step: ProcessStep,
+    rowTag: 'process-row-1' | 'process-row-2',
+  ) => (
+    <div data-gsap={rowTag} className="flex">
       <button
         type="button"
         onClick={() => navigate(step.to)}
@@ -442,8 +455,11 @@ export function WelcomePage() {
     </div>
   )
 
-  const renderProcessPhotoCard = (photo: (typeof PROCESS_PHOTOS)[number]) => (
-    <div data-gsap="process-item" className="flex">
+  const renderProcessPhotoCard = (
+    photo: (typeof PROCESS_PHOTOS)[number],
+    rowTag: 'process-row-1' | 'process-row-2',
+  ) => (
+    <div data-gsap={rowTag} className="flex">
       <div className="group relative min-h-[285px] w-full overflow-hidden rounded-[24px] bg-[var(--bg-sheet)] sm:min-h-[320px]">
         <div data-gsap="process-photo-parallax" className="absolute inset-0 h-full w-full">
           <img
@@ -1008,7 +1024,7 @@ export function WelcomePage() {
           <div data-gsap="process-grid" className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {/* Row 1, Cols 1-2: Intro Copy + "How It Works — Step by Step" & Sleek Arrow */}
             <div
-              data-gsap="process-item"
+              data-gsap="process-row-1"
               className="flex flex-col justify-between py-2 sm:col-span-2 lg:col-span-2 lg:pr-6"
             >
               <p className="max-w-[390px] text-sm leading-[1.5] text-[var(--text-secondary)] sm:text-[15px]">
@@ -1045,28 +1061,28 @@ export function WelcomePage() {
             </div>
 
             {/* Row 1, Col 3: Step 1 */}
-            {renderProcessStepCard(PROCESS_STEPS[0])}
+            {renderProcessStepCard(PROCESS_STEPS[0], 'process-row-1')}
 
             {/* Row 1, Col 4: Step 2 */}
-            {renderProcessStepCard(PROCESS_STEPS[1])}
+            {renderProcessStepCard(PROCESS_STEPS[1], 'process-row-1')}
 
             {/* Row 1, Col 5: Photo 1 */}
-            {renderProcessPhotoCard(PROCESS_PHOTOS[0])}
+            {renderProcessPhotoCard(PROCESS_PHOTOS[0], 'process-row-1')}
 
             {/* Row 2, Col 1: Photo 2 */}
-            {renderProcessPhotoCard(PROCESS_PHOTOS[1])}
+            {renderProcessPhotoCard(PROCESS_PHOTOS[1], 'process-row-2')}
 
             {/* Row 2, Col 2: Step 3 */}
-            {renderProcessStepCard(PROCESS_STEPS[2])}
+            {renderProcessStepCard(PROCESS_STEPS[2], 'process-row-2')}
 
             {/* Row 2, Col 3: Step 4 */}
-            {renderProcessStepCard(PROCESS_STEPS[3])}
+            {renderProcessStepCard(PROCESS_STEPS[3], 'process-row-2')}
 
             {/* Row 2, Col 4: Photo 3 */}
-            {renderProcessPhotoCard(PROCESS_PHOTOS[2])}
+            {renderProcessPhotoCard(PROCESS_PHOTOS[2], 'process-row-2')}
 
             {/* Row 2, Col 5: Step 5 */}
-            {renderProcessStepCard(PROCESS_STEPS[4])}
+            {renderProcessStepCard(PROCESS_STEPS[4], 'process-row-2')}
           </div>
         </section>
 
