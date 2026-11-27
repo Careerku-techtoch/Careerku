@@ -398,14 +398,6 @@ export function DashboardPage() {
         <div className="flex flex-wrap items-center gap-2.5">
           <button
             type="button"
-            onClick={() => navigate('/analyze')}
-            className="careerku-btn-secondary inline-flex cursor-pointer items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold sm:text-sm"
-          >
-            <Sparkles className="h-4 w-4 text-[var(--accent-indigo)]" />
-            <span>AI Skill Gap</span>
-          </button>
-          <button
-            type="button"
             onClick={() => navigate('/discover')}
             className="careerku-btn-primary inline-flex cursor-pointer items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold sm:text-sm"
           >
