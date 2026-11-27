@@ -1,0 +1,24 @@
+{
+  "name": "careerku-video",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Careerku explanatory motion graphics video built with Remotion",
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render CareerkuExplainer out/careerku-explainer.mp4",
+    "still": "remotion still CareerkuExplainer out/preview.png"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.280",
+    "@remotion/google-fonts": "^4.0.280",
+    "lucide-react": "^0.511.0",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "remotion": "^4.0.280"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.8.0"
+  }
+}
