@@ -36,8 +36,8 @@ export function CareerkuLogo({
     >
       <defs>
         <linearGradient id={gradId} x1="24" y1="7" x2="43" y2="26" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor={inverted ? '#B8BCFF' : '#5860EC'} />
-          <stop offset="100%" stopColor={inverted ? '#8D93FA' : '#8E94FA'} />
+          <stop offset="0%" stopColor={inverted ? '#8CD4B5' : '#1E5640'} />
+          <stop offset="100%" stopColor={inverted ? '#54A884' : '#3A8465'} />
         </linearGradient>
       </defs>
 
@@ -58,7 +58,7 @@ export function CareerkuLogo({
       {/* Companion Small Sparkle */}
       <path
         d="M 41.8 3 Q 42.3 6.7 46 7.2 Q 42.3 7.7 41.8 11.4 Q 41.3 7.7 37.6 7.2 Q 41.3 6.7 41.8 3 Z"
-        fill={inverted ? '#C7CBFF' : '#9AA0FA'}
+        fill={inverted ? '#B4E6CF' : '#68AA8D'}
       />
     </svg>
   )

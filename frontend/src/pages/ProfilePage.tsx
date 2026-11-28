@@ -1,4 +1,5 @@
-import { useState, type FormEvent } from 'react'
+import { useLayoutEffect, useRef, useState, type FormEvent } from 'react'
+import gsap from 'gsap'
 import {
   Briefcase,
   CheckCircle2,
@@ -34,6 +35,38 @@ export function ProfilePage() {
   const [expOrg, setExpOrg] = useState('')
   const [expPeriod, setExpPeriod] = useState('')
   const [expSummary, setExpSummary] = useState('')
+
+  const sectionRef = useRef<HTMLElement | null>(null)
+
+  useLayoutEffect(() => {
+    const mm = gsap.matchMedia()
+    mm.add(
+      '(prefers-reduced-motion: no-preference)',
+      () => {
+        const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
+        tl.from('[data-anim="profile-card"]', {
+          y: 20,
+          opacity: 0,
+          duration: 0.5,
+          stagger: 0.07,
+          clearProps: 'transform',
+        }).from(
+          '[data-anim="impact-tile"]',
+          {
+            y: 12,
+            opacity: 0,
+            duration: 0.42,
+            stagger: 0.055,
+            ease: 'power2.out',
+            clearProps: 'transform',
+          },
+          '-=0.3',
+        )
+      },
+      sectionRef,
+    )
+    return () => mm.revert()
+  }, [])
 
   const highMatchCount = opportunities.filter((o) => o.match.tier === 'high').length
   const avgMatchScore = Math.round(
@@ -83,10 +116,14 @@ export function ProfilePage() {
   )
 
   return (
-    <section className="grid grid-cols-1 gap-5 xl:grid-cols-12">
+    <section ref={sectionRef} className="grid grid-cols-1 gap-5 xl:grid-cols-12">
       {/* Main Form Column */}
       <div className="space-y-5 xl:col-span-8">
-        <form onSubmit={handleSaveAcademic} className="careerku-sheet rounded-3xl p-5 sm:p-6">
+        <form
+          data-anim="profile-card"
+          onSubmit={handleSaveAcademic}
+          className="careerku-sheet rounded-3xl p-5 sm:p-6"
+        >
           <div className="mb-4 flex items-center justify-between gap-3">
             <div className="flex items-center gap-2.5">
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--accent-indigo-soft)] text-[var(--accent-indigo)]">
@@ -194,9 +231,9 @@ export function ProfilePage() {
         </form>
 
         {/* Skills Management */}
-        <div className="careerku-sheet rounded-3xl p-5 sm:p-6">
+        <div data-anim="profile-card" className="careerku-sheet rounded-3xl p-5 sm:p-6">
           <div className="mb-4 flex items-center gap-2.5">
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-emerald-50 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-300">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--status-success-soft)] text-[var(--status-success-text)]">
               <Sparkles className="h-4.5 w-4.5" />
             </span>
             <div>
@@ -238,7 +275,7 @@ export function ProfilePage() {
                     type="button"
                     onClick={() => removeSkill(skill)}
                     aria-label={`Remove ${skill}`}
-                    className="flex h-4.5 w-4.5 cursor-pointer items-center justify-center rounded-full text-[var(--text-muted)] hover:bg-[var(--bg-card)] hover:text-rose-600"
+                    className="flex h-4.5 w-4.5 cursor-pointer items-center justify-center rounded-full text-[var(--text-muted)] hover:bg-[var(--bg-card)] hover:text-[var(--status-danger-text)]"
                   >
                     <X className="h-3 w-3" />
                   </button>
@@ -270,7 +307,7 @@ export function ProfilePage() {
         </div>
 
         {/* Experiences */}
-        <div className="careerku-sheet rounded-3xl p-5 sm:p-6">
+        <div data-anim="profile-card" className="careerku-sheet rounded-3xl p-5 sm:p-6">
           <div className="mb-4 flex items-center gap-2.5">
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--bg-card)] text-[var(--text-primary)]">
               <Briefcase className="h-4.5 w-4.5" />
@@ -302,7 +339,7 @@ export function ProfilePage() {
                   type="button"
                   onClick={() => removeExperience(exp.id)}
                   aria-label="Remove experience"
-                  className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-[var(--text-muted)] hover:bg-rose-50 hover:text-rose-600"
+                  className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full text-[var(--text-muted)] hover:bg-[var(--status-danger-soft)] hover:text-[var(--status-danger-text)]"
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>
@@ -355,13 +392,13 @@ export function ProfilePage() {
 
       {/* Right Summary Column */}
       <div className="space-y-4 xl:col-span-4">
-        <div className="careerku-sheet sticky top-5 rounded-3xl p-5">
+        <div data-anim="profile-card" className="careerku-sheet sticky top-5 rounded-3xl p-5">
           <h3 className="mb-3 text-sm font-bold text-[var(--text-primary)]">
             Live Matching Impact
           </h3>
 
           <div className="space-y-3">
-            <div className="careerku-card rounded-2xl p-4">
+            <div data-anim="impact-tile" className="careerku-card rounded-2xl p-4">
               <p className="text-xs text-[var(--text-muted)]">Average Match Score</p>
               <p className="mt-1 text-3xl font-bold tracking-tight text-[var(--text-primary)]">
                 {avgMatchScore}%
@@ -372,13 +409,13 @@ export function ProfilePage() {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <div className="careerku-card rounded-2xl p-4">
+              <div data-anim="impact-tile" className="careerku-card rounded-2xl p-4">
                 <p className="text-[11px] text-[var(--text-muted)]">High Match</p>
-                <p className="mt-1 text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+                <p className="mt-1 text-2xl font-bold text-[var(--status-success-text)]">
                   {highMatchCount}
                 </p>
               </div>
-              <div className="careerku-card rounded-2xl p-4">
+              <div data-anim="impact-tile" className="careerku-card rounded-2xl p-4">
                 <p className="text-[11px] text-[var(--text-muted)]">Total Skills</p>
                 <p className="mt-1 text-2xl font-bold text-[var(--accent-indigo)]">
                   {profile.skills.length}
@@ -386,7 +423,10 @@ export function ProfilePage() {
               </div>
             </div>
 
-            <div className="careerku-card rounded-2xl p-4 text-xs leading-relaxed text-[var(--text-secondary)]">
+            <div
+              data-anim="impact-tile"
+              className="careerku-card rounded-2xl p-4 text-xs leading-relaxed text-[var(--text-secondary)]"
+            >
               <p className="mb-1 font-bold text-[var(--text-primary)]">Try Updating Your Skills</p>
               <p>
                 Add skills like <strong>Python</strong>, <strong>Docker</strong>, or{' '}

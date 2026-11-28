@@ -120,8 +120,8 @@ export function OpportunityDetailDrawer() {
           </div>
 
           {/* Official Source & Verification Timestamp */}
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-emerald-500/25 bg-emerald-50/70 px-3.5 py-2.5 text-xs dark:bg-emerald-500/10">
-            <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
+          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-[var(--status-success-border)] bg-[var(--status-success-soft)] px-3.5 py-2.5 text-xs">
+            <div className="flex items-center gap-2 text-[var(--status-success-text)]">
               <ShieldCheck className="h-4 w-4 shrink-0" />
               <div>
                 <p className="font-semibold">{selectedOpportunity.sourceName}</p>
@@ -135,7 +135,7 @@ export function OpportunityDetailDrawer() {
               href={selectedOpportunity.sourceUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-[11px] font-semibold text-emerald-700 shadow-xs hover:bg-emerald-50 dark:bg-emerald-950/60 dark:text-emerald-200"
+              className="inline-flex items-center gap-1 rounded-full border border-[var(--status-success-border)] bg-[var(--bg-card)] px-3 py-1 text-[11px] font-semibold text-[var(--status-success-text)] shadow-xs hover:bg-[var(--bg-subtle)]"
             >
               <span>Official Source</span>
               <ExternalLink className="h-3 w-3" />
@@ -168,9 +168,9 @@ export function OpportunityDetailDrawer() {
                 >
                   <div className="flex items-center gap-2.5">
                     {check.met ? (
-                      <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-500" />
+                      <CheckCircle2 className="h-4 w-4 shrink-0 text-[var(--status-success)]" />
                     ) : (
-                      <AlertCircle className="h-4 w-4 shrink-0 text-rose-500" />
+                      <AlertCircle className="h-4 w-4 shrink-0 text-[var(--status-danger)]" />
                     )}
                     <div>
                       <p className="font-semibold text-[var(--text-primary)]">{check.label}</p>
@@ -182,8 +182,8 @@ export function OpportunityDetailDrawer() {
                   <span
                     className={`rounded-full px-2.5 py-0.5 text-[11px] font-semibold ${
                       check.met
-                        ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-300'
-                        : 'bg-rose-50 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300'
+                        ? 'bg-[var(--status-success-soft)] text-[var(--status-success-text)]'
+                        : 'bg-[var(--status-danger-soft)] text-[var(--status-danger-text)]'
                     }`}
                   >
                     Yours: {check.actual}
@@ -204,7 +204,7 @@ export function OpportunityDetailDrawer() {
                 {selectedOpportunity.match.matchedSkills.map((skill) => (
                   <span
                     key={skill}
-                    className="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 dark:border-emerald-500/30 dark:bg-emerald-500/15 dark:text-emerald-300"
+                    className="inline-flex items-center gap-1 rounded-full border border-[var(--status-success-border)] bg-[var(--status-success-soft)] px-2.5 py-1 text-[11px] font-semibold text-[var(--status-success-text)]"
                   >
                     <CheckCircle2 className="h-3 w-3" />
                     {skill}
@@ -213,7 +213,7 @@ export function OpportunityDetailDrawer() {
                 {selectedOpportunity.match.missingSkills.map((skill) => (
                   <span
                     key={skill}
-                    className="inline-flex items-center gap-1 rounded-full border border-rose-200 bg-rose-50 px-2.5 py-1 text-[11px] font-semibold text-rose-700 dark:border-rose-500/30 dark:bg-rose-500/15 dark:text-rose-300"
+                    className="inline-flex items-center gap-1 rounded-full border border-[var(--status-danger-border)] bg-[var(--status-danger-soft)] px-2.5 py-1 text-[11px] font-semibold text-[var(--status-danger-text)]"
                   >
                     <AlertCircle className="h-3 w-3" />
                     {skill} (Gap)
@@ -304,7 +304,7 @@ export function OpportunityDetailDrawer() {
             }}
             className={`inline-flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-full px-4 py-2.5 text-xs font-semibold ${
               tracked
-                ? 'border border-emerald-500/30 bg-emerald-600 text-white hover:bg-emerald-700'
+                ? 'border border-[var(--accent-brand)]/30 bg-[var(--accent-brand-soft)] text-[var(--accent-brand)] hover:opacity-90'
                 : 'careerku-btn-primary'
             }`}
           >

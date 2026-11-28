@@ -177,3 +177,112 @@ export function DeadlinePulseGlyph({ className = 'h-5 w-5' }: GlyphProps) {
     </svg>
   )
 }
+
+export function SkillGapGlyph({ className = 'h-5 w-5' }: GlyphProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M3.5 7H12"
+        stroke="currentColor"
+        strokeWidth="1.85"
+        strokeLinecap="round"
+      />
+      <circle
+        cx="12"
+        cy="7"
+        r="1.75"
+        fill="var(--bg-card)"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
+      <path
+        d="M3.5 12.5H19.5"
+        stroke="currentColor"
+        strokeOpacity="0.25"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+      <path
+        d="M3.5 12.5H14.5"
+        stroke="currentColor"
+        strokeWidth="1.85"
+        strokeLinecap="round"
+      />
+      <circle cx="14.5" cy="12.5" r="2" fill="var(--accent-indigo)" />
+      <path
+        d="M3.5 18H19.5"
+        stroke="currentColor"
+        strokeOpacity="0.25"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+      <path
+        d="M3.5 18H9.5"
+        stroke="currentColor"
+        strokeWidth="1.85"
+        strokeLinecap="round"
+      />
+      <circle
+        cx="9.5"
+        cy="18"
+        r="1.75"
+        fill="var(--bg-card)"
+        stroke="currentColor"
+        strokeWidth="1.6"
+      />
+      <path
+        d="M18.5 2.5 Q18.95 5.55 22 6 Q18.95 6.45 18.5 9.5 Q18.05 6.45 15 6 Q18.05 5.55 18.5 2.5 Z"
+        fill="var(--accent-indigo)"
+      />
+    </svg>
+  )
+}
+
+export function PortfolioSprintGlyph({ className = 'h-5 w-5' }: GlyphProps) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+      className={className}
+    >
+      <path
+        d="M3 7.25A2.75 2.75 0 0 1 5.75 4.5H18.25A2.75 2.75 0 0 1 21 7.25V9.25H3V7.25Z"
+        fill="currentColor"
+        fillOpacity="0.12"
+      />
+      <rect
+        x="3"
+        y="4.5"
+        width="18"
+        height="15"
+        rx="2.75"
+        stroke="currentColor"
+        strokeWidth="1.75"
+      />
+      <path
+        d="M3 9.25H21"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+      />
+      <circle cx="6.25" cy="6.85" r="0.85" fill="currentColor" fillOpacity="0.45" />
+      <circle cx="9" cy="6.85" r="0.85" fill="currentColor" fillOpacity="0.45" />
+      <circle cx="17.5" cy="6.85" r="1.35" fill="var(--accent-indigo)" />
+      <path
+        d="M8.5 12.5L6.5 14.5L8.5 16.5M14.5 12.5L16.5 14.5L14.5 16.5M12.2 12L10.8 17"
+        stroke="currentColor"
+        strokeWidth="1.65"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}

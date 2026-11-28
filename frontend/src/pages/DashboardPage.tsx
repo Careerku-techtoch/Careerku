@@ -1,5 +1,7 @@
-import { useMemo, useState } from 'react'
+import { useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import {
   ArrowUpRight,
   Award,
@@ -24,6 +26,8 @@ import type { OpportunityCategory } from '@/types'
 import { useCareerku } from '@/hooks'
 import { formatDateID, getCategoryLabel, getDaysUntilDeadline, getStatusLabel } from '@/utils'
 
+gsap.registerPlugin(ScrollTrigger)
+
 const CATEGORY_ACCENTS: Record<
   OpportunityCategory,
   {
@@ -34,25 +38,25 @@ const CATEGORY_ACCENTS: Record<
   }
 > = {
   internship: {
-    topBar: 'bg-sky-500',
-    dot: 'bg-sky-500',
+    topBar: 'bg-[var(--cat-internship)]',
+    dot: 'bg-[var(--cat-internship)]',
     calendarTile:
-      'bg-sky-100 text-sky-950 ring-1 ring-sky-300 dark:bg-sky-500/25 dark:text-sky-100 dark:ring-sky-400/40',
-    badge: 'bg-sky-100 text-sky-900 dark:bg-sky-500/20 dark:text-sky-200',
+      'bg-[var(--cat-internship-soft)] text-[var(--cat-internship-text)] ring-1 ring-[var(--cat-internship-border)]',
+    badge: 'bg-[var(--cat-internship-soft)] text-[var(--cat-internship-text)]',
   },
   scholarship: {
-    topBar: 'bg-amber-500',
-    dot: 'bg-amber-500',
+    topBar: 'bg-[var(--cat-scholarship)]',
+    dot: 'bg-[var(--cat-scholarship)]',
     calendarTile:
-      'bg-amber-100 text-amber-950 ring-1 ring-amber-300 dark:bg-amber-500/25 dark:text-amber-100 dark:ring-amber-400/40',
-    badge: 'bg-amber-100 text-amber-900 dark:bg-amber-500/20 dark:text-amber-200',
+      'bg-[var(--cat-scholarship-soft)] text-[var(--cat-scholarship-text)] ring-1 ring-[var(--cat-scholarship-border)]',
+    badge: 'bg-[var(--cat-scholarship-soft)] text-[var(--cat-scholarship-text)]',
   },
   competition: {
-    topBar: 'bg-rose-500',
-    dot: 'bg-rose-500',
+    topBar: 'bg-[var(--cat-competition)]',
+    dot: 'bg-[var(--cat-competition)]',
     calendarTile:
-      'bg-rose-100 text-rose-950 ring-1 ring-rose-300 dark:bg-rose-500/25 dark:text-rose-100 dark:ring-rose-400/40',
-    badge: 'bg-rose-100 text-rose-900 dark:bg-rose-500/20 dark:text-rose-200',
+      'bg-[var(--cat-competition-soft)] text-[var(--cat-competition-text)] ring-1 ring-[var(--cat-competition-border)]',
+    badge: 'bg-[var(--cat-competition-soft)] text-[var(--cat-competition-text)]',
   },
 }
 
@@ -74,9 +78,9 @@ const MONTH_NAMES = [
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as const
 
 function getBarToneClass(value: number): string {
-  if (value >= 75) return 'bg-emerald-500 dark:bg-emerald-400'
-  if (value >= 55) return 'bg-amber-500 dark:bg-amber-400'
-  return 'bg-rose-500 dark:bg-rose-400'
+  if (value >= 75) return 'bg-[var(--status-success)]'
+  if (value >= 55) return 'bg-[var(--status-warning)]'
+  return 'bg-[var(--status-danger)]'
 }
 
 export function DashboardPage() {
@@ -363,6 +367,210 @@ export function DashboardPage() {
     ]
   }, [opportunities, navigate, openOpportunityDetail])
 
+  const sectionRef = useRef<HTMLElement | null>(null)
+  const prevFilterRef = useRef(categoryFilter)
+  const prevMonthRef = useRef(calendarMonth)
+
+  useLayoutEffect(() => {
+    const root = sectionRef.current
+    if (!root) return
+
+    const mm = gsap.matchMedia()
+    mm.add(
+      '(prefers-reduced-motion: no-preference)',
+      () => {
+        const tl = gsap.timeline({ defaults: { ease: 'power3.out' } })
+
+        tl.from('[data-dash="header"]', { y: 16, opacity: 0, duration: 0.45, clearProps: 'transform' }, 0)
+          .from(
+            '[data-dash="kpi-card"]',
+            {
+              y: 22,
+              opacity: 0,
+              scale: 0.97,
+              duration: 0.5,
+              stagger: 0.06,
+              clearProps: 'transform',
+            },
+            0.08,
+          )
+          .from(
+            '[data-dash="kpi-doc-bar"]',
+            { scaleX: 0, transformOrigin: 'left center', duration: 0.7, clearProps: 'transform' },
+            0.2,
+          )
+          .from(
+            '[data-dash="workspace-panel"]',
+            { y: 24, opacity: 0, duration: 0.55, stagger: 0.08, clearProps: 'transform' },
+            0.22,
+          )
+          .from(
+            '[data-dash="checklist-row"]',
+            { x: -10, opacity: 0, duration: 0.38, stagger: 0.045, clearProps: 'transform' },
+            0.32,
+          )
+
+        // Numeric roll-up for static-on-page KPI numbers (excludes Documents Ready so toggles stay instant)
+        gsap.utils.toArray<HTMLElement>('[data-dash-count]').forEach((el) => {
+          const target = Number(el.dataset.target ?? '0')
+          const suffix = el.dataset.suffix ?? ''
+          const counter = { value: 0 }
+          gsap.to(counter, {
+            value: target,
+            duration: 0.75,
+            delay: 0.12,
+            ease: 'power2.out',
+            onUpdate: () => {
+              el.textContent = `${Math.round(counter.value)}${suffix}`
+            },
+          })
+        })
+
+        // Scroll-triggered Analytics & AI Guidance row
+        gsap.from('[data-dash="analytics-panel"]', {
+          y: 26,
+          opacity: 0,
+          duration: 0.55,
+          stagger: 0.09,
+          ease: 'power3.out',
+          clearProps: 'transform',
+          scrollTrigger: {
+            trigger: '[data-dash="analytics-row"]',
+            start: 'top 88%',
+            once: true,
+          },
+        })
+
+        gsap.from('[data-dash="breakdown-bar"]', {
+          scaleX: 0,
+          transformOrigin: 'left center',
+          duration: 0.75,
+          stagger: 0.07,
+          ease: 'power3.out',
+          clearProps: 'transform',
+          scrollTrigger: {
+            trigger: '[data-dash="analytics-row"]',
+            start: 'top 86%',
+            once: true,
+          },
+        })
+
+        gsap.from('[data-dash="ai-rec-row"]', {
+          y: 16,
+          opacity: 0,
+          duration: 0.45,
+          stagger: 0.07,
+          ease: 'power3.out',
+          clearProps: 'transform',
+          scrollTrigger: {
+            trigger: '[data-dash="ai-recs-card"]',
+            start: 'top 86%',
+            once: true,
+          },
+        })
+
+        // Scroll-triggered Bottom row (Deadline Calendar & Profile Snapshot)
+        gsap.from('[data-dash="bottom-panel"]', {
+          y: 26,
+          opacity: 0,
+          duration: 0.55,
+          stagger: 0.09,
+          ease: 'power3.out',
+          clearProps: 'transform',
+          scrollTrigger: {
+            trigger: '[data-dash="bottom-row"]',
+            start: 'top 90%',
+            once: true,
+          },
+        })
+
+        gsap.from('[data-dash="skill-chip"]', {
+          scale: 0.9,
+          opacity: 0,
+          duration: 0.35,
+          stagger: 0.03,
+          ease: 'power2.out',
+          clearProps: 'transform',
+          scrollTrigger: {
+            trigger: '[data-dash="profile-panel"]',
+            start: 'top 88%',
+            once: true,
+          },
+        })
+      },
+      root,
+    )
+
+    return () => mm.revert()
+  }, [])
+
+  // Micro-animation when switching Ongoing Applications category filter
+  useLayoutEffect(() => {
+    if (prevFilterRef.current === categoryFilter) return
+    prevFilterRef.current = categoryFilter
+
+    const root = sectionRef.current
+    if (!root) return
+
+    const mm = gsap.matchMedia()
+    mm.add(
+      '(prefers-reduced-motion: no-preference)',
+      () => {
+        gsap.fromTo(
+          '[data-dash="app-card"]',
+          { y: 14, opacity: 0, scale: 0.98 },
+          {
+            y: 0,
+            opacity: 1,
+            scale: 1,
+            duration: 0.35,
+            stagger: 0.05,
+            ease: 'power2.out',
+            clearProps: 'transform',
+          },
+        )
+      },
+      root,
+    )
+
+    return () => mm.revert()
+  }, [categoryFilter])
+
+  // Micro-animation when stepping Deadline Calendar months
+  useLayoutEffect(() => {
+    if (
+      prevMonthRef.current.year === calendarMonth.year &&
+      prevMonthRef.current.month === calendarMonth.month
+    ) {
+      return
+    }
+    prevMonthRef.current = calendarMonth
+
+    const root = sectionRef.current
+    if (!root) return
+
+    const mm = gsap.matchMedia()
+    mm.add(
+      '(prefers-reduced-motion: no-preference)',
+      () => {
+        gsap.fromTo(
+          '[data-dash="calendar-body"]',
+          { opacity: 0.35, y: 6 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.28,
+            ease: 'power2.out',
+            clearProps: 'transform',
+          },
+        )
+      },
+      root,
+    )
+
+    return () => mm.revert()
+  }, [calendarMonth])
+
   const stepCalendarMonth = (delta: number) => {
     setCalendarMonth((prev) => {
       const next = new Date(prev.year, prev.month + delta, 1)
@@ -375,11 +583,14 @@ export function DashboardPage() {
   const latestExperience = profile.experiences[0]
 
   return (
-    <section className="space-y-6 pb-6 pt-2">
+    <section ref={sectionRef} className="space-y-6 pb-6 pt-2">
       {/* =================================================================== */}
       {/* 1. CLEAN GREETING HEADER + PRIMARY ACTIONS                          */}
       {/* =================================================================== */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div
+        data-dash="header"
+        className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between"
+      >
         <div>
           <h1 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] sm:text-3xl">
             Welcome back, {firstName}
@@ -411,100 +622,115 @@ export function DashboardPage() {
       {/* 2. 4 SCANNABLE KPI SUMMARY CARDS                                    */}
       {/* =================================================================== */}
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <button
-          type="button"
-          onClick={() => navigate('/discover')}
-          className="careerku-card group flex cursor-pointer flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-[var(--border-strong)]"
-        >
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
-              High Matches
-            </span>
-            <HighMatchGlyph className="h-6 w-6 shrink-0 text-[var(--text-primary)] transition-transform duration-200 group-hover:scale-110" />
-          </div>
-          <div className="mt-3">
-            <p className="text-3xl font-bold tabular-nums text-[var(--text-primary)]">
-              {highMatches.length}
-            </p>
-            <p className="mt-1 text-xs text-[var(--text-secondary)]">
-              {highMatchPct}% of {opportunities.length} verified listings
-            </p>
-          </div>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => navigate('/analyze')}
-          className="careerku-card group flex cursor-pointer flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-[var(--border-strong)]"
-        >
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
-              Average Match
-            </span>
-            <MatchIndexGlyph className="h-6 w-6 shrink-0 text-[var(--text-primary)] transition-transform duration-200 group-hover:scale-110" />
-          </div>
-          <div className="mt-3">
-            <p className="text-3xl font-bold tabular-nums text-[var(--text-primary)]">
-              {avgScore}%
-            </p>
-            <p className="mt-1 text-xs text-[var(--text-secondary)]">
-              Across {profile.skills.length} skills & GPA {profile.gpa.toFixed(2)}
-            </p>
-          </div>
-        </button>
-
-        <button
-          type="button"
-          onClick={() => navigate('/tracker')}
-          className="careerku-card group flex cursor-pointer flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-[var(--border-strong)]"
-        >
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
-              Documents Ready
-            </span>
-            <DocumentReadyGlyph className="h-6 w-6 shrink-0 text-[var(--text-primary)] transition-transform duration-200 group-hover:scale-110" />
-          </div>
-          <div className="mt-3">
-            <div className="flex items-baseline justify-between gap-2">
-              <p className="text-3xl font-bold tabular-nums text-[var(--text-primary)]">
-                {completedDocsCount}/{allTrackedDocs.length}
-              </p>
-              <span className="rounded-full bg-[var(--accent-indigo-soft)] px-2.5 py-0.5 text-xs font-semibold tabular-nums text-[var(--accent-indigo)]">
-                {docReadyPct}%
+        <div data-dash="kpi-card" className="flex">
+          <button
+            type="button"
+            onClick={() => navigate('/discover')}
+            className="careerku-card group flex w-full cursor-pointer flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-[var(--border-strong)]"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+                High Matches
               </span>
+              <HighMatchGlyph className="h-6 w-6 shrink-0 text-[var(--text-primary)] transition-transform duration-200 group-hover:scale-110" />
             </div>
-            <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[var(--border-subtle)]">
-              <div
-                className="h-full rounded-full bg-[var(--accent-indigo)] transition-all duration-500"
-                style={{ width: `${docReadyPct}%` }}
-              />
+            <div className="mt-3">
+              <p className="text-3xl font-bold tabular-nums text-[var(--text-primary)]">
+                <span data-dash-count data-target={highMatches.length}>
+                  {highMatches.length}
+                </span>
+              </p>
+              <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                {highMatchPct}% of {opportunities.length} verified listings
+              </p>
             </div>
-            <p className="mt-2 text-xs text-[var(--text-secondary)]">
-              {appliedCount} application(s) submitted
-            </p>
-          </div>
-        </button>
+          </button>
+        </div>
 
-        <button
-          type="button"
-          onClick={() => navigate('/discover')}
-          className="careerku-card group flex cursor-pointer flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-[var(--border-strong)]"
-        >
-          <div className="flex items-center justify-between gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
-              Upcoming Deadlines
-            </span>
-            <DeadlinePulseGlyph className="h-6 w-6 shrink-0 text-[var(--text-primary)] transition-transform duration-200 group-hover:scale-110" />
-          </div>
-          <div className="mt-3">
-            <p className="text-3xl font-bold tabular-nums text-[var(--text-primary)]">
-              {urgentDeadlines.length}
-            </p>
-            <p className="mt-1 text-xs text-[var(--text-secondary)]">
-              Due within 14 days • {trackedApplications.length} tracked
-            </p>
-          </div>
-        </button>
+        <div data-dash="kpi-card" className="flex">
+          <button
+            type="button"
+            onClick={() => navigate('/analyze')}
+            className="careerku-card group flex w-full cursor-pointer flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-[var(--border-strong)]"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+                Average Match
+              </span>
+              <MatchIndexGlyph className="h-6 w-6 shrink-0 text-[var(--text-primary)] transition-transform duration-200 group-hover:scale-110" />
+            </div>
+            <div className="mt-3">
+              <p className="text-3xl font-bold tabular-nums text-[var(--text-primary)]">
+                <span data-dash-count data-target={avgScore} data-suffix="%">
+                  {avgScore}%
+                </span>
+              </p>
+              <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                Across {profile.skills.length} skills & GPA {profile.gpa.toFixed(2)}
+              </p>
+            </div>
+          </button>
+        </div>
+
+        <div data-dash="kpi-card" className="flex">
+          <button
+            type="button"
+            onClick={() => navigate('/tracker')}
+            className="careerku-card group flex w-full cursor-pointer flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-[var(--border-strong)]"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+                Documents Ready
+              </span>
+              <DocumentReadyGlyph className="h-6 w-6 shrink-0 text-[var(--text-primary)] transition-transform duration-200 group-hover:scale-110" />
+            </div>
+            <div className="mt-3">
+              <div className="flex items-baseline justify-between gap-2">
+                <p className="text-3xl font-bold tabular-nums text-[var(--text-primary)]">
+                  {completedDocsCount}/{allTrackedDocs.length}
+                </p>
+                <span className="rounded-full bg-[var(--accent-indigo-soft)] px-2.5 py-0.5 text-xs font-semibold tabular-nums text-[var(--accent-indigo)]">
+                  {docReadyPct}%
+                </span>
+              </div>
+              <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[var(--border-subtle)]">
+                <div
+                  data-dash="kpi-doc-bar"
+                  className="h-full rounded-full bg-[var(--accent-indigo)] transition-all duration-500"
+                  style={{ width: `${docReadyPct}%` }}
+                />
+              </div>
+              <p className="mt-2 text-xs text-[var(--text-secondary)]">
+                {appliedCount} application(s) submitted
+              </p>
+            </div>
+          </button>
+        </div>
+
+        <div data-dash="kpi-card" className="flex">
+          <button
+            type="button"
+            onClick={() => navigate('/discover')}
+            className="careerku-card group flex w-full cursor-pointer flex-col justify-between rounded-2xl p-5 text-left transition-all hover:border-[var(--border-strong)]"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-[var(--text-secondary)]">
+                Upcoming Deadlines
+              </span>
+              <DeadlinePulseGlyph className="h-6 w-6 shrink-0 text-[var(--text-primary)] transition-transform duration-200 group-hover:scale-110" />
+            </div>
+            <div className="mt-3">
+              <p className="text-3xl font-bold tabular-nums text-[var(--text-primary)]">
+                <span data-dash-count data-target={urgentDeadlines.length}>
+                  {urgentDeadlines.length}
+                </span>
+              </p>
+              <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                Due within 14 days • {trackedApplications.length} tracked
+              </p>
+            </div>
+          </button>
+        </div>
       </div>
 
       {/* =================================================================== */}
@@ -512,7 +738,10 @@ export function DashboardPage() {
       {/* =================================================================== */}
       <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
         {/* Left: Ongoing Applications (8 cols) */}
-        <div className="careerku-card flex flex-col justify-between rounded-3xl p-5 sm:p-6 xl:col-span-8">
+        <div
+          data-dash="workspace-panel"
+          className="careerku-card flex flex-col justify-between rounded-3xl p-5 sm:p-6 xl:col-span-8"
+        >
           <div>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -580,79 +809,80 @@ export function DashboardPage() {
                   const isUrgent = item.daysLeft <= 14
 
                   return (
-                    <div
-                      key={item.opp.id}
-                      onClick={() => openOpportunityDetail(item.opp.id)}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                          e.preventDefault()
-                          openOpportunityDetail(item.opp.id)
-                        }
-                      }}
-                      className="group flex cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-sheet)] transition-all hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:shadow-sm"
-                    >
-                      {/* Subtle Top Category Accent Bar */}
-                      <div className={`h-[3px] w-full ${accent.topBar}`} />
+                    <div key={item.opp.id} data-dash="app-card" className="flex">
+                      <div
+                        onClick={() => openOpportunityDetail(item.opp.id)}
+                        role="button"
+                        tabIndex={0}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault()
+                            openOpportunityDetail(item.opp.id)
+                          }
+                        }}
+                        className="group flex w-full cursor-pointer flex-col justify-between overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-sheet)] transition-all hover:-translate-y-0.5 hover:border-[var(--border-strong)] hover:shadow-sm"
+                      >
+                        {/* Subtle Top Category Accent Bar */}
+                        <div className={`h-[3px] w-full ${accent.topBar}`} />
 
-                      <div className="flex flex-1 flex-col justify-between p-4">
-                        <div>
-                          {/* Top Row: Org Initials + Careerku C-Logo Match Gauge */}
-                          <div className="flex items-center justify-between gap-2">
-                            <div className="flex min-w-0 items-center gap-2">
-                              <span
-                                className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
-                                style={{ backgroundColor: item.opp.orgAccent }}
-                              >
-                                {item.opp.orgInitials}
+                        <div className="flex flex-1 flex-col justify-between p-4">
+                          <div>
+                            {/* Top Row: Org Initials + Careerku C-Logo Match Gauge */}
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex min-w-0 items-center gap-2">
+                                <span
+                                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
+                                  style={{ backgroundColor: item.opp.orgAccent }}
+                                >
+                                  {item.opp.orgInitials}
+                                </span>
+                                <span className="truncate text-xs font-semibold text-[var(--text-secondary)]">
+                                  {item.opp.organization}
+                                </span>
+                              </div>
+                              <CareerkuMatchGauge score={item.opp.match.score} size="md" className="shrink-0" />
+                            </div>
+
+                            {/* Title (2 lines) & Category */}
+                            <h3 className="mt-3 line-clamp-2 text-sm font-bold leading-snug text-[var(--text-primary)] group-hover:underline">
+                              {item.opp.title}
+                            </h3>
+                            <p className="mt-1 text-xs text-[var(--text-secondary)]">
+                              {getCategoryLabel(item.opp.category)} • {item.opp.workMode}
+                            </p>
+                          </div>
+
+                          {/* Document Progress + Footer */}
+                          <div className="mt-4 pt-2">
+                            <div className="mb-1.5 flex items-center justify-between text-xs">
+                              <span className="font-medium text-[var(--text-secondary)]">
+                                Documents
                               </span>
-                              <span className="truncate text-xs font-semibold text-[var(--text-secondary)]">
-                                {item.opp.organization}
+                              <span className="font-semibold tabular-nums text-[var(--text-primary)]">
+                                {item.doneCount}/{item.totalCount} ({item.progressPct}%)
                               </span>
                             </div>
-                            <CareerkuMatchGauge score={item.opp.match.score} size="md" className="shrink-0" />
-                          </div>
+                            <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--border-subtle)]">
+                              <div
+                                className={`h-full rounded-full transition-all duration-500 ${accent.topBar}`}
+                                style={{ width: `${Math.max(8, item.progressPct)}%` }}
+                              />
+                            </div>
 
-                          {/* Title (2 lines) & Category */}
-                          <h3 className="mt-3 line-clamp-2 text-sm font-bold leading-snug text-[var(--text-primary)] group-hover:underline">
-                            {item.opp.title}
-                          </h3>
-                          <p className="mt-1 text-xs text-[var(--text-secondary)]">
-                            {getCategoryLabel(item.opp.category)} • {item.opp.workMode}
-                          </p>
-                        </div>
-
-                        {/* Document Progress + Footer */}
-                        <div className="mt-4 pt-2">
-                          <div className="mb-1.5 flex items-center justify-between text-xs">
-                            <span className="font-medium text-[var(--text-secondary)]">
-                              Documents
-                            </span>
-                            <span className="font-semibold tabular-nums text-[var(--text-primary)]">
-                              {item.doneCount}/{item.totalCount} ({item.progressPct}%)
-                            </span>
-                          </div>
-                          <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--border-subtle)]">
-                            <div
-                              className={`h-full rounded-full transition-all duration-500 ${accent.topBar}`}
-                              style={{ width: `${Math.max(8, item.progressPct)}%` }}
-                            />
-                          </div>
-
-                          <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border-subtle)] pt-3">
-                            <span className="rounded-full bg-[var(--bg-card)] px-2.5 py-0.5 text-xs font-semibold text-[var(--text-primary)] shadow-2xs">
-                              {getStatusLabel(item.app.status)}
-                            </span>
-                            <span
-                              className={`text-xs font-semibold tabular-nums ${
-                                isUrgent
-                                  ? 'text-rose-600 dark:text-rose-300'
-                                  : 'text-[var(--text-secondary)]'
-                              }`}
-                            >
-                              Due {formatDateID(item.opp.deadline)} ({item.daysLeft}d)
-                            </span>
+                            <div className="mt-3.5 flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border-subtle)] pt-3">
+                              <span className="rounded-full bg-[var(--bg-card)] px-2.5 py-0.5 text-xs font-semibold text-[var(--text-primary)] shadow-2xs">
+                                {getStatusLabel(item.app.status)}
+                              </span>
+                              <span
+                                className={`text-xs font-semibold tabular-nums ${
+                                  isUrgent
+                                    ? 'text-[var(--status-danger-text)]'
+                                    : 'text-[var(--text-secondary)]'
+                                }`}
+                              >
+                                Due {formatDateID(item.opp.deadline)} ({item.daysLeft}d)
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -665,7 +895,10 @@ export function DashboardPage() {
         </div>
 
         {/* Right: Interactive Document Checklist (4 cols) */}
-        <div className="careerku-card flex flex-col justify-between rounded-3xl p-5 sm:p-6 xl:col-span-4">
+        <div
+          data-dash="workspace-panel"
+          className="careerku-card flex flex-col justify-between rounded-3xl p-5 sm:p-6 xl:col-span-4"
+        >
           <div>
             <div className="flex items-start justify-between gap-3">
               <div>
@@ -690,7 +923,7 @@ export function DashboardPage() {
               </div>
               <div className="h-2 w-full overflow-hidden rounded-full bg-[var(--border-subtle)]">
                 <div
-                  className="h-full rounded-full bg-emerald-500 transition-all duration-500 dark:bg-emerald-400"
+                  className="h-full rounded-full bg-[var(--status-success)] transition-all duration-500"
                   style={{ width: `${docReadyPct}%` }}
                 />
               </div>
@@ -708,7 +941,7 @@ export function DashboardPage() {
             ) : (
               <ul className="mt-4 space-y-2.5">
                 {prioritizedChecklistDocs.map((doc) => (
-                  <li key={`${doc.opportunityId}-${doc.docId}`}>
+                  <li key={`${doc.opportunityId}-${doc.docId}`} data-dash="checklist-row">
                     <button
                       type="button"
                       onClick={() => toggleDocumentItem(doc.opportunityId, doc.docId)}
@@ -717,7 +950,7 @@ export function DashboardPage() {
                       <span
                         className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full transition-colors ${
                           doc.completed
-                            ? 'bg-emerald-500 text-white dark:bg-emerald-400 dark:text-[#111311]'
+                            ? 'bg-[var(--status-success)] text-white dark:text-[#111311]'
                             : 'border-2 border-[var(--border-strong)] bg-[var(--bg-card)] text-transparent group-hover:border-[var(--accent-indigo)]'
                         }`}
                       >
@@ -759,9 +992,12 @@ export function DashboardPage() {
       {/* =================================================================== */}
       {/* 4. ANALYTICS & AI GUIDANCE ROW                                      */}
       {/* =================================================================== */}
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
+      <div data-dash="analytics-row" className="grid grid-cols-1 gap-5 xl:grid-cols-12">
         {/* Left: Match & Readiness Breakdown (7 cols) */}
-        <div className="careerku-card flex flex-col justify-between rounded-3xl p-5 sm:p-6 xl:col-span-7">
+        <div
+          data-dash="analytics-panel"
+          className="careerku-card flex flex-col justify-between rounded-3xl p-5 sm:p-6 xl:col-span-7"
+        >
           <div>
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -798,6 +1034,7 @@ export function DashboardPage() {
                   </div>
                   <div className="h-2.5 w-full overflow-hidden rounded-full bg-[var(--bg-subtle)]">
                     <div
+                      data-dash="breakdown-bar"
                       className={`h-full rounded-full transition-all duration-500 ${getBarToneClass(row.value)}`}
                       style={{ width: `${Math.max(4, row.value)}%` }}
                     />
@@ -809,13 +1046,14 @@ export function DashboardPage() {
         </div>
 
         {/* Right: AI Recommendations (5 cols) */}
-        <div className="careerku-card flex flex-col justify-between rounded-3xl p-5 sm:p-6 xl:col-span-5">
-          <div>
+        <div
+          data-dash="analytics-panel"
+          className="careerku-card flex flex-col justify-between rounded-3xl p-5 sm:p-6 xl:col-span-5"
+        >
+          <div data-dash="ai-recs-card">
             <div className="mb-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2">
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-[var(--accent-indigo-soft)] text-[var(--accent-indigo)]">
-                  <Sparkles className="h-4 w-4" />
-                </span>
+                <Sparkles className="h-4 w-4 text-[var(--accent-brand)]" />
                 <h2 className="text-base font-bold text-[var(--text-primary)] sm:text-lg">
                   AI Recommendations
                 </h2>
@@ -834,35 +1072,36 @@ export function DashboardPage() {
               {aiRecommendations.map((item, idx) => {
                 const Icon = idx === 0 ? Sparkles : idx === 1 ? Trophy : Award
                 return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    onClick={item.onClick}
-                    className="group flex w-full cursor-pointer items-start gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-sheet)] p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[var(--border-strong)]"
-                  >
-                    <span
-                      className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${item.iconBgClass}`}
+                  <div key={item.id} data-dash="ai-rec-row">
+                    <button
+                      type="button"
+                      onClick={item.onClick}
+                      className="group flex w-full cursor-pointer items-start gap-3 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-sheet)] p-4 text-left transition-all hover:-translate-y-0.5 hover:border-[var(--border-strong)]"
                     >
-                      <Icon className="h-4 w-4" />
-                    </span>
+                      <span
+                        className={`mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${item.iconBgClass}`}
+                      >
+                        <Icon className="h-4 w-4" />
+                      </span>
 
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <span
-                          className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${item.badgeClass}`}
-                        >
-                          {item.badge}
-                        </span>
-                        <ArrowUpRight className="h-4 w-4 shrink-0 text-[var(--text-muted)] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[var(--text-primary)]" />
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <span
+                            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${item.badgeClass}`}
+                          >
+                            {item.badge}
+                          </span>
+                          <ArrowUpRight className="h-4 w-4 shrink-0 text-[var(--text-muted)] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5 group-hover:text-[var(--text-primary)]" />
+                        </div>
+                        <p className="mt-2 text-sm font-bold leading-snug text-[var(--text-primary)]">
+                          {item.title}
+                        </p>
+                        <p className="mt-1 text-xs leading-relaxed text-[var(--text-secondary)]">
+                          {item.message}
+                        </p>
                       </div>
-                      <p className="mt-2 text-sm font-bold leading-snug text-[var(--text-primary)]">
-                        {item.title}
-                      </p>
-                      <p className="mt-1 text-xs leading-relaxed text-[var(--text-secondary)]">
-                        {item.message}
-                      </p>
-                    </div>
-                  </button>
+                    </button>
+                  </div>
                 )
               })}
             </div>
@@ -873,9 +1112,12 @@ export function DashboardPage() {
       {/* =================================================================== */}
       {/* 5. DEADLINES & PROFILE SNAPSHOT ROW                                 */}
       {/* =================================================================== */}
-      <div className="grid grid-cols-1 gap-5 xl:grid-cols-12">
+      <div data-dash="bottom-row" className="grid grid-cols-1 gap-5 xl:grid-cols-12">
         {/* Left: Deadline Calendar (8 cols) */}
-        <div className="careerku-card rounded-3xl p-5 sm:p-6 xl:col-span-8">
+        <div
+          data-dash="bottom-panel"
+          className="careerku-card rounded-3xl p-5 sm:p-6 xl:col-span-8"
+        >
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2.5">
               <h2 className="text-base font-bold text-[var(--text-primary)] sm:text-lg">
@@ -909,7 +1151,7 @@ export function DashboardPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
+          <div data-dash="calendar-body" className="grid grid-cols-1 gap-6 md:grid-cols-12">
             {/* Calendar Tile Grid */}
             <div className="md:col-span-7">
               <div className="mb-2 grid grid-cols-7 gap-1.5 text-center text-xs font-semibold text-[var(--text-secondary)]">
@@ -954,13 +1196,13 @@ export function DashboardPage() {
               {/* Legend */}
               <div className="mt-4 flex flex-wrap items-center gap-4 text-xs font-medium text-[var(--text-secondary)]">
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-sky-500" /> Internship
+                  <span className="h-2.5 w-2.5 rounded-full bg-[var(--cat-internship)]" /> Internship
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-amber-500" /> Scholarship
+                  <span className="h-2.5 w-2.5 rounded-full bg-[var(--cat-scholarship)]" /> Scholarship
                 </span>
                 <span className="inline-flex items-center gap-1.5">
-                  <span className="h-2.5 w-2.5 rounded-full bg-rose-500" /> Competition
+                  <span className="h-2.5 w-2.5 rounded-full bg-[var(--cat-competition)]" /> Competition
                 </span>
               </div>
             </div>
@@ -1028,8 +1270,11 @@ export function DashboardPage() {
         </div>
 
         {/* Right: Profile Snapshot (4 cols) */}
-        <div className="careerku-card flex flex-col justify-between rounded-3xl p-5 sm:p-6 xl:col-span-4">
-          <div className="space-y-4">
+        <div
+          data-dash="bottom-panel"
+          className="careerku-card flex flex-col justify-between rounded-3xl p-5 sm:p-6 xl:col-span-4"
+        >
+          <div data-dash="profile-panel" className="space-y-4">
             {/* Compact Identity Block */}
             <div className="flex items-start justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3.5">
@@ -1086,13 +1331,17 @@ export function DashboardPage() {
                 {visibleSkills.map((skill) => (
                   <span
                     key={skill}
+                    data-dash="skill-chip"
                     className="rounded-full border border-[var(--border-subtle)] bg-[var(--bg-sheet)] px-2.5 py-1 text-xs font-medium text-[var(--text-primary)]"
                   >
                     {skill}
                   </span>
                 ))}
                 {extraSkillCount > 0 && (
-                  <span className="rounded-full bg-[var(--bg-subtle)] px-2.5 py-1 text-xs font-semibold text-[var(--text-secondary)]">
+                  <span
+                    data-dash="skill-chip"
+                    className="rounded-full bg-[var(--bg-subtle)] px-2.5 py-1 text-xs font-semibold text-[var(--text-secondary)]"
+                  >
                     +{extraSkillCount} more
                   </span>
                 )}

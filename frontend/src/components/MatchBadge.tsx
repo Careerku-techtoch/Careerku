@@ -7,10 +7,10 @@ interface MatchBadgeProps {
 }
 
 const TIER_STYLES = {
-  high: 'bg-emerald-50 text-emerald-700 border-emerald-200/70 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30',
+  high: 'bg-[var(--status-success-soft)] text-[var(--status-success-text)] border-[var(--status-success-border)]',
   medium:
-    'bg-indigo-50 text-indigo-600 border-indigo-200/70 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/30',
-  low: 'bg-rose-50 text-rose-600 border-rose-200/70 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30',
+    'bg-[var(--status-warning-soft)] text-[var(--status-warning-text)] border-[var(--status-warning-border)]',
+  low: 'bg-[var(--status-danger-soft)] text-[var(--status-danger-text)] border-[var(--status-danger-border)]',
 } as const
 
 export function MatchBadge({ match, showPercentage = false }: MatchBadgeProps) {
