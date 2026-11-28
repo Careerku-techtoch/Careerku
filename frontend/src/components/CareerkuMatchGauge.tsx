@@ -92,15 +92,15 @@ export function CareerkuMatchGauge({
         strokeDashoffset={100 - clampedScore}
       />
 
-      {/* Careerku Dual Sparkles */}
+      {/* Careerku Forest Green Compass Needle */}
       <g ref={sparkleGroupRef}>
-        <path
-          d="M 41.5 10.7 Q 42.2 16.8 48.3 17.5 Q 42.2 18.2 41.5 24.3 Q 40.8 18.2 34.7 17.5 Q 40.8 16.8 41.5 10.7 Z"
-          fill="var(--accent-indigo)"
+        <polygon
+          points="48,7 40.5,22 33,14.5"
+          className="fill-[#059669] dark:fill-[#10b981]"
         />
-        <path
-          d="M 49.2 5.4 Q 49.6 8.4 52.6 8.8 Q 49.6 9.2 49.2 12.2 Q 48.8 9.2 45.8 8.8 Q 48.8 8.4 49.2 5.4 Z"
-          fill="var(--accent-indigo-pill)"
+        <polygon
+          points="29,26 33,14.5 40.5,22"
+          className="fill-[#059669]/45 dark:fill-[#10b981]/45"
         />
       </g>
 

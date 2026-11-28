@@ -1,25 +1,19 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <defs>
-    <linearGradient id="sparkleGrad" x1="30" y1="12" x2="54" y2="36" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#54A884" />
-      <stop offset="100%" stop-color="#8CD4B5" />
+    <linearGradient id="compassGrad" x1="24" y1="24" x2="41" y2="7" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#059669" />
+      <stop offset="100%" stop-color="#34D399" />
     </linearGradient>
   </defs>
   <rect width="64" height="64" rx="18" fill="#1C1E21" />
   <g transform="translate(8, 8)">
     <path
-      d="M 26.4 12.6 A 14.5 14.5 0 1 0 35.5 26.5"
+      d="M 26.8 12 A 14.5 14.5 0 1 0 35.8 26.4"
       stroke="#FFFFFF"
       stroke-width="5.8"
       stroke-linecap="butt"
     />
-    <path
-      d="M 33.5 7.3 Q 34.4 15.6 42.7 16.5 Q 34.4 17.4 33.5 25.7 Q 32.6 17.4 24.3 16.5 Q 32.6 15.6 33.5 7.3 Z"
-      fill="url(#sparkleGrad)"
-    />
-    <path
-      d="M 41.8 3 Q 42.3 6.7 46 7.2 Q 42.3 7.7 41.8 11.4 Q 41.3 7.7 37.6 7.2 Q 41.3 6.7 41.8 3 Z"
-      fill="#B4E6CF"
-    />
+    <polygon points="41,7 34.5,20 28,13.5" fill="url(#compassGrad)" />
+    <polygon points="24,24 28,13.5 34.5,20" fill="#10B981" fill-opacity="0.45" />
   </g>
 </svg>

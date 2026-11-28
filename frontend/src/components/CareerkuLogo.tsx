@@ -35,30 +35,28 @@ export function CareerkuLogo({
       className={badge ? 'h-full w-full' : dims.icon}
     >
       <defs>
-        <linearGradient id={gradId} x1="24" y1="7" x2="43" y2="26" gradientUnits="userSpaceOnUse">
-          <stop offset="0%" stopColor={inverted ? '#8CD4B5' : '#1E5640'} />
-          <stop offset="100%" stopColor={inverted ? '#54A884' : '#3A8465'} />
+        <linearGradient id={gradId} x1="24" y1="24" x2="41" y2="7" gradientUnits="userSpaceOnUse">
+          <stop offset="0%" stopColor={inverted ? '#10B981' : '#059669'} />
+          <stop offset="100%" stopColor={inverted ? '#34D399' : '#10B981'} />
         </linearGradient>
       </defs>
 
       {/* Open Geometric "C" Arc */}
       <path
-        d="M 26.4 12.6 A 14.5 14.5 0 1 0 35.5 26.5"
+        d="M 26.8 12 A 14.5 14.5 0 1 0 35.8 26.4"
         stroke={arcColor}
         strokeWidth="5.8"
         strokeLinecap="butt"
       />
 
-      {/* Primary 4-Point AI Sparkle */}
-      <path
-        d="M 33.5 7.3 Q 34.4 15.6 42.7 16.5 Q 34.4 17.4 33.5 25.7 Q 32.6 17.4 24.3 16.5 Q 32.6 15.6 33.5 7.3 Z"
-        fill={`url(#${gradId})`}
-      />
+      {/* Forest Green Compass Needle (Primary Tip) */}
+      <polygon points="41,7 34.5,20 28,13.5" fill={`url(#${gradId})`} />
 
-      {/* Companion Small Sparkle */}
-      <path
-        d="M 41.8 3 Q 42.3 6.7 46 7.2 Q 42.3 7.7 41.8 11.4 Q 41.3 7.7 37.6 7.2 Q 41.3 6.7 41.8 3 Z"
-        fill={inverted ? '#B4E6CF' : '#68AA8D'}
+      {/* Forest Green Compass Needle (Tail Accent) */}
+      <polygon
+        points="24,24 28,13.5 34.5,20"
+        fill={inverted ? '#10B981' : '#059669'}
+        fillOpacity="0.45"
       />
     </svg>
   )

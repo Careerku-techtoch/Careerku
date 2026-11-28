@@ -417,7 +417,7 @@ export function WelcomePage() {
       >
         {/* Top-Right Circular Brand Emblem Badge (Spintip Signature) */}
         <div className="flex justify-end">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#191b1e] text-white transition-all duration-300 group-hover:scale-110 group-hover:bg-[#1e5640] dark:bg-[#f1f2ea] dark:text-[#181a18] dark:group-hover:bg-[#54a884] dark:group-hover:text-white">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#191b1e] text-white transition-all duration-300 group-hover:scale-110 group-hover:bg-[#059669] dark:bg-[#f1f2ea] dark:text-[#181a18] dark:group-hover:bg-[#10b981] dark:group-hover:text-white">
             <svg
               viewBox="0 0 48 48"
               fill="none"
@@ -426,15 +426,13 @@ export function WelcomePage() {
               className="h-4.5 w-4.5"
             >
               <path
-                d="M 26.4 12.6 A 14.5 14.5 0 1 0 35.5 26.5"
+                d="M 26.8 12 A 14.5 14.5 0 1 0 35.8 26.4"
                 stroke="currentColor"
                 strokeWidth="6"
                 strokeLinecap="butt"
               />
-              <path
-                d="M 33.5 7.3 Q 34.4 15.6 42.7 16.5 Q 34.4 17.4 33.5 25.7 Q 32.6 17.4 24.3 16.5 Q 32.6 15.6 33.5 7.3 Z"
-                fill="currentColor"
-              />
+              <polygon points="41,7 34.5,20 28,13.5" fill="currentColor" />
+              <polygon points="24,24 28,13.5 34.5,20" fill="currentColor" fillOpacity="0.45" />
             </svg>
           </span>
         </div>
