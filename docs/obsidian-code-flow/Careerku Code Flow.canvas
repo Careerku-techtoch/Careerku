@@ -1,0 +1,339 @@
+{
+  "nodes": [
+    {
+      "id": "moc-banner",
+      "type": "file",
+      "file": "00 - Careerku Code Flow (MOC).md",
+      "x": 340,
+      "y": -220,
+      "width": 440,
+      "height": 140,
+      "color": "4"
+    },
+    {
+      "id": "g-entry",
+      "type": "group",
+      "label": "1. Bootstrap & Routing",
+      "x": -110,
+      "y": 0,
+      "width": 390,
+      "height": 340,
+      "color": "4"
+    },
+    {
+      "id": "n-boot-doc",
+      "type": "file",
+      "file": "01 - Bootstrap & Routing Flow.md",
+      "x": -85,
+      "y": 48,
+      "width": 340,
+      "height": 120
+    },
+    {
+      "id": "n-main-runtime",
+      "type": "text",
+      "text": "**main.tsx -> App.tsx**\n- StrictMode + BrowserRouter\n- `<CareerkuProvider>` wrapper\n- `<Routes>` + `<OpportunityDetailDrawer />`\n- `?opportunity=<id>` query handoff",
+      "x": -85,
+      "y": 190,
+      "width": 340,
+      "height": 125
+    },
+    {
+      "id": "g-state",
+      "type": "group",
+      "label": "2. State, Persistence & Matching Engine",
+      "x": 340,
+      "y": 0,
+      "width": 790,
+      "height": 340,
+      "color": "5"
+    },
+    {
+      "id": "n-store-doc",
+      "type": "file",
+      "file": "02 - State Management & Data Flow.md",
+      "x": 365,
+      "y": 48,
+      "width": 355,
+      "height": 120
+    },
+    {
+      "id": "n-match-doc",
+      "type": "file",
+      "file": "03 - Matching Engine & Utilities Flow.md",
+      "x": 750,
+      "y": 48,
+      "width": 355,
+      "height": 120
+    },
+    {
+      "id": "n-storage-runtime",
+      "type": "text",
+      "text": "**localStorage + API Readiness**\n- `careerku_profile_v2`\n- `careerku_tracked_v2`\n- `careerku_theme_v1` (.dark root)\n- `apiClient` (Axios + Zod `env.ts`)",
+      "x": 365,
+      "y": 190,
+      "width": 355,
+      "height": 125
+    },
+    {
+      "id": "n-engine-runtime",
+      "type": "text",
+      "text": "**evaluateOpportunityMatch()**\n- `MOCK_OPPORTUNITIES` (9) + `profile`\n- Weighted score (`20..99`)\n- `High / Medium / Low` tier\n- `ruleChecks`, `matched/missingSkills`",
+      "x": 750,
+      "y": 190,
+      "width": 355,
+      "height": 125
+    },
+    {
+      "id": "g-public",
+      "type": "group",
+      "label": "3. Public Funnel (/, /login, /register)",
+      "x": -110,
+      "y": 400,
+      "width": 390,
+      "height": 330,
+      "color": "2"
+    },
+    {
+      "id": "n-public-doc",
+      "type": "file",
+      "file": "04 - Public Pages Flow (Welcome & Auth).md",
+      "x": -85,
+      "y": 448,
+      "width": 340,
+      "height": 120
+    },
+    {
+      "id": "n-public-runtime",
+      "type": "text",
+      "text": "**WelcomePage & AuthPage**\n- Hero parallax, ScrollTrigger rows, stat counters\n- Form validation + 350ms auth simulation\n- `/register` -> `/profile` | `/login` -> `/dashboard`",
+      "x": -85,
+      "y": 590,
+      "width": 340,
+      "height": 115
+    },
+    {
+      "id": "g-workspace",
+      "type": "group",
+      "label": "4. Workspace Shell & 5 Core Tabs",
+      "x": 340,
+      "y": 400,
+      "width": 790,
+      "height": 330,
+      "color": "6"
+    },
+    {
+      "id": "n-shell-doc",
+      "type": "file",
+      "file": "05 - Workspace Shell & Navigation Flow.md",
+      "x": 365,
+      "y": 448,
+      "width": 355,
+      "height": 120
+    },
+    {
+      "id": "n-pages-doc",
+      "type": "file",
+      "file": "06 - Workspace Pages Flow.md",
+      "x": 750,
+      "y": 448,
+      "width": 355,
+      "height": 120
+    },
+    {
+      "id": "n-shell-runtime",
+      "type": "text",
+      "text": "**AppShell + Global Overlays**\n- Desktop sliding active pill (`indicatorRef`)\n- Deadline popover + Theme toggle spin\n- `OpportunityDetailDrawer` + `ToastBanner`",
+      "x": 365,
+      "y": 590,
+      "width": 355,
+      "height": 115
+    },
+    {
+      "id": "n-pages-runtime",
+      "type": "text",
+      "text": "**5 Workspace Pages**\n- `/dashboard` (KPI, Calendar, Checklist)\n- `/discover` (Search, Filter, Sort)\n- `/analyze` (Role Gap + `+` Add Skill)\n- `/tracker` (Status, Docs, Drafts) & `/profile`",
+      "x": 750,
+      "y": 590,
+      "width": 355,
+      "height": 115
+    },
+    {
+      "id": "g-ui",
+      "type": "group",
+      "label": "5. Design Tokens, UI Components & GSAP Rules",
+      "x": -110,
+      "y": 790,
+      "width": 580,
+      "height": 270,
+      "color": "3"
+    },
+    {
+      "id": "n-ui-doc",
+      "type": "file",
+      "file": "07 - UI Components, Styling & GSAP System.md",
+      "x": -85,
+      "y": 838,
+      "width": 530,
+      "height": 110
+    },
+    {
+      "id": "n-ui-runtime",
+      "type": "text",
+      "text": "**index.css & Reusable UI**\n- Botanical Forest (`--accent-brand`) + Muted Earth (`--cat-*`, `--status-*`)\n- `CareerkuLogo`, `CareerkuMatchGauge` (C-arc SVG), 6 `DashboardIcons` glyphs\n- GSAP `matchMedia()`, wrapper divs, `clearProps: 'transform'`",
+      "x": -85,
+      "y": 965,
+      "width": 530,
+      "height": 75
+    },
+    {
+      "id": "g-video",
+      "type": "group",
+      "label": "6. Remotion Explainer Video Pipeline (video/)",
+      "x": 530,
+      "y": 790,
+      "width": 600,
+      "height": 270,
+      "color": "1"
+    },
+    {
+      "id": "n-video-doc",
+      "type": "file",
+      "file": "08 - Remotion Video Pipeline Flow.md",
+      "x": 555,
+      "y": 838,
+      "width": 550,
+      "height": 110
+    },
+    {
+      "id": "n-video-runtime",
+      "type": "text",
+      "text": "**Remotion 4.0 Composition (`CareerkuExplainer`)**\n- `1920x1080 @ 60fps`, 3600 frames (60.0s), 7 `<Sequence>` scenes\n- Output: `video/out/careerku-explainer.mp4` (`npm run render`)",
+      "x": 555,
+      "y": 965,
+      "width": 550,
+      "height": 75
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-moc-boot",
+      "fromNode": "moc-banner",
+      "fromSide": "left",
+      "toNode": "n-boot-doc",
+      "toSide": "top",
+      "label": "Entry"
+    },
+    {
+      "id": "e-moc-store",
+      "fromNode": "moc-banner",
+      "fromSide": "bottom",
+      "toNode": "n-store-doc",
+      "toSide": "top",
+      "label": "State"
+    },
+    {
+      "id": "e-moc-match",
+      "fromNode": "moc-banner",
+      "fromSide": "right",
+      "toNode": "n-match-doc",
+      "toSide": "top",
+      "label": "Scoring"
+    },
+    {
+      "id": "e-boot-store",
+      "fromNode": "n-main-runtime",
+      "fromSide": "right",
+      "toNode": "n-storage-runtime",
+      "toSide": "left",
+      "label": "wraps"
+    },
+    {
+      "id": "e-store-ls",
+      "fromNode": "n-store-doc",
+      "fromSide": "bottom",
+      "toNode": "n-storage-runtime",
+      "toSide": "top"
+    },
+    {
+      "id": "e-store-engine",
+      "fromNode": "n-storage-runtime",
+      "fromSide": "right",
+      "toNode": "n-engine-runtime",
+      "toSide": "left",
+      "label": "profile + mocks"
+    },
+    {
+      "id": "e-boot-public",
+      "fromNode": "n-main-runtime",
+      "fromSide": "bottom",
+      "toNode": "n-public-doc",
+      "toSide": "top",
+      "label": "/, /login, /register"
+    },
+    {
+      "id": "e-boot-shell",
+      "fromNode": "n-main-runtime",
+      "fromSide": "bottom",
+      "toNode": "n-shell-doc",
+      "toSide": "top",
+      "label": "Workspace Layout"
+    },
+    {
+      "id": "e-public-pages",
+      "fromNode": "n-public-runtime",
+      "fromSide": "right",
+      "toNode": "n-shell-runtime",
+      "toSide": "left",
+      "label": "redirects to /dashboard or /profile"
+    },
+    {
+      "id": "e-engine-pages",
+      "fromNode": "n-engine-runtime",
+      "fromSide": "bottom",
+      "toNode": "n-pages-doc",
+      "toSide": "top",
+      "label": "EnrichedOpportunity[]"
+    },
+    {
+      "id": "e-shell-tabs",
+      "fromNode": "n-shell-runtime",
+      "fromSide": "right",
+      "toNode": "n-pages-runtime",
+      "toSide": "left",
+      "label": "Outlet + Drawer + Toast"
+    },
+    {
+      "id": "e-pages-store",
+      "fromNode": "n-pages-runtime",
+      "fromSide": "top",
+      "toNode": "n-storage-runtime",
+      "toSide": "bottom",
+      "label": "addSkill / track / toggleDoc"
+    },
+    {
+      "id": "e-ui-public",
+      "fromNode": "n-ui-doc",
+      "fromSide": "top",
+      "toNode": "n-public-runtime",
+      "toSide": "bottom",
+      "label": "GSAP + Tokens"
+    },
+    {
+      "id": "e-ui-workspace",
+      "fromNode": "n-ui-doc",
+      "fromSide": "top",
+      "toNode": "n-shell-runtime",
+      "toSide": "bottom",
+      "label": "Components + Motion"
+    },
+    {
+      "id": "e-pages-video",
+      "fromNode": "n-pages-runtime",
+      "fromSide": "bottom",
+      "toNode": "n-video-doc",
+      "toSide": "top",
+      "label": "UI inspiration for Scenes 5-7"
+    }
+  ]
+}
