@@ -160,13 +160,13 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
               className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#0d0f13]/90 via-[#0d0f13]/20 to-[#0d0f13]/55"
             />
 
-            {/* Subtle Top-Right Brand Indigo Tint */}
+            {/* Subtle Top-Right Brand Forest Tint */}
             <div
               aria-hidden="true"
               className="pointer-events-none absolute inset-0"
               style={{
                 background:
-                  'radial-gradient(ellipse 65% 50% at 85% 15%, rgba(82, 87, 229, 0.24) 0%, transparent 70%)',
+                  'radial-gradient(ellipse 65% 50% at 85% 15%, rgba(30, 86, 64, 0.28) 0%, transparent 70%)',
               }}
             />
 
@@ -215,7 +215,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                   {/* Social Proof Glass Pill (Spacious Initials Avatar Badges) */}
                   <div className="mb-5 inline-flex items-center gap-3 rounded-full border border-white/20 bg-black/35 py-1.5 pl-2 pr-4 backdrop-blur-md">
                     <div className="flex -space-x-1.5">
-                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#a6aaf7] text-[10px] font-bold leading-none tracking-tight text-[#14161a] ring-2 ring-[#16181c]/80">
+                      <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#79b49a] text-[10px] font-bold leading-none tracking-tight text-[#14161a] ring-2 ring-[#16181c]/80">
                         RP
                       </span>
                       <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[#f5d061] text-[10px] font-bold leading-none tracking-tight text-[#14161a] ring-2 ring-[#16181c]/80">
@@ -244,7 +244,7 @@ export function AuthPage({ initialMode = 'login' }: AuthPageProps) {
                 <>
                   {/* Onboarding Pill + 3 Step Cards (Ninth Signature) */}
                   <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-black/35 px-3.5 py-1.5 text-[11px] font-medium text-white/95 backdrop-blur-md">
-                    <Sparkles className="h-3.5 w-3.5 text-[#a6aaf7]" />
+                    <Sparkles className="h-3.5 w-3.5 text-[#8cd4b5]" />
                     <span>Join Careerku in 3 simple steps</span>
                   </div>
 

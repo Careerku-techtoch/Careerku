@@ -16,7 +16,7 @@ export function ToastBanner() {
     >
       <span
         className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white ${
-          isSuccess ? 'bg-emerald-500' : 'bg-indigo-500'
+          isSuccess ? 'bg-[var(--status-success)]' : 'bg-[var(--accent-brand)]'
         }`}
       >
         {isSuccess ? <Check className="h-4.5 w-4.5" strokeWidth={2.6} /> : <Info className="h-4.5 w-4.5" />}

@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
   <defs>
     <linearGradient id="sparkleGrad" x1="30" y1="12" x2="54" y2="36" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#8B91FA" />
-      <stop offset="100%" stop-color="#C0C4FF" />
+      <stop offset="0%" stop-color="#54A884" />
+      <stop offset="100%" stop-color="#8CD4B5" />
     </linearGradient>
   </defs>
   <rect width="64" height="64" rx="18" fill="#1C1E21" />
@@ -19,7 +19,7 @@
     />
     <path
       d="M 41.8 3 Q 42.3 6.7 46 7.2 Q 42.3 7.7 41.8 11.4 Q 41.3 7.7 37.6 7.2 Q 41.3 6.7 41.8 3 Z"
-      fill="#C7CBFF"
+      fill="#B4E6CF"
     />
   </g>
 </svg>

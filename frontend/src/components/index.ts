@@ -6,6 +6,8 @@ export {
   DocumentReadyGlyph,
   HighMatchGlyph,
   MatchIndexGlyph,
+  PortfolioSprintGlyph,
+  SkillGapGlyph,
 } from './DashboardIcons'
 export { FolderTabs, type FolderTabItem } from './FolderTabs'
 export { MatchBadge } from './MatchBadge'

@@ -1,5 +1,6 @@
-import { useState, type ReactNode } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react'
+import { NavLink, useLocation, useNavigate } from 'react-router-dom'
+import gsap from 'gsap'
 import {
   Bell,
   Briefcase,
@@ -36,9 +37,168 @@ interface AppShellProps {
 
 export function AppShell({ children }: AppShellProps) {
   const navigate = useNavigate()
+  const location = useLocation()
   const { profile, opportunities, trackedApplications, theme, setTheme } = useCareerku()
 
   const [showNotifPopover, setShowNotifPopover] = useState(false)
+
+  const headerRef = useRef<HTMLElement | null>(null)
+  const navRef = useRef<HTMLElement | null>(null)
+  const indicatorRef = useRef<HTMLSpanElement | null>(null)
+  const tabRefs = useRef<Record<string, HTMLAnchorElement | null>>({})
+  const hasPositionedIndicatorRef = useRef(false)
+  const prevActiveNavRef = useRef<string | null>(null)
+  const notifPopoverRef = useRef<HTMLDivElement | null>(null)
+  const themeIconRef = useRef<HTMLSpanElement | null>(null)
+  const prevThemeRef = useRef(theme)
+
+  const activeNavTo =
+    NAV_ITEMS.find(
+      (item) => location.pathname === item.to || location.pathname.startsWith(`${item.to}/`),
+    )?.to ?? null
+
+  useLayoutEffect(() => {
+    const mm = gsap.matchMedia()
+    mm.add(
+      '(prefers-reduced-motion: no-preference)',
+      () => {
+        gsap.from('[data-nav="group"]', {
+          y: -10,
+          opacity: 0,
+          duration: 0.42,
+          stagger: 0.06,
+          ease: 'power3.out',
+          clearProps: 'transform',
+        })
+      },
+      headerRef,
+    )
+    return () => mm.revert()
+  }, [])
+
+  useLayoutEffect(() => {
+    const indicator = indicatorRef.current
+    if (!indicator) return
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    const activeEl = activeNavTo ? tabRefs.current[activeNavTo] : null
+
+    if (!activeEl || activeEl.offsetWidth === 0) {
+      gsap.set(indicator, { opacity: 0 })
+    } else {
+      const { offsetLeft, offsetWidth } = activeEl
+      if (!hasPositionedIndicatorRef.current || prefersReducedMotion) {
+        gsap.set(indicator, { x: offsetLeft, width: offsetWidth, opacity: 1 })
+        hasPositionedIndicatorRef.current = true
+      } else {
+        gsap.to(indicator, {
+          x: offsetLeft,
+          width: offsetWidth,
+          opacity: 1,
+          duration: 0.36,
+          ease: 'power3.out',
+          overwrite: 'auto',
+        })
+      }
+    }
+
+    if (
+      activeNavTo &&
+      prevActiveNavRef.current !== null &&
+      prevActiveNavRef.current !== activeNavTo &&
+      !prefersReducedMotion
+    ) {
+      const targets = [
+        navRef.current?.querySelector(`[data-nav-icon="${activeNavTo}"]`),
+        document.querySelector(`[data-mobile-nav-icon="${activeNavTo}"]`),
+      ].filter((el): el is Element => el !== null && el !== undefined)
+
+      if (targets.length > 0) {
+        gsap.fromTo(
+          targets,
+          { scale: 0.78 },
+          {
+            scale: 1,
+            duration: 0.3,
+            ease: 'back.out(2)',
+            clearProps: 'transform',
+            overwrite: 'auto',
+          },
+        )
+      }
+    }
+
+    prevActiveNavRef.current = activeNavTo
+  }, [activeNavTo])
+
+  useEffect(() => {
+    let mounted = true
+    const syncIndicator = () => {
+      if (!mounted) return
+      const indicator = indicatorRef.current
+      const activeEl = activeNavTo ? tabRefs.current[activeNavTo] : null
+      if (!indicator) return
+      if (!activeEl || activeEl.offsetWidth === 0) {
+        gsap.set(indicator, { opacity: 0 })
+        return
+      }
+      gsap.set(indicator, { x: activeEl.offsetLeft, width: activeEl.offsetWidth, opacity: 1 })
+      hasPositionedIndicatorRef.current = true
+    }
+
+    window.addEventListener('resize', syncIndicator)
+    document.fonts?.ready?.then(syncIndicator)
+
+    return () => {
+      mounted = false
+      window.removeEventListener('resize', syncIndicator)
+    }
+  }, [activeNavTo])
+
+  useLayoutEffect(() => {
+    if (!showNotifPopover || !notifPopoverRef.current) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    const popover = notifPopoverRef.current
+    gsap.fromTo(
+      popover,
+      { y: -8, opacity: 0, scale: 0.97 },
+      { y: 0, opacity: 1, scale: 1, duration: 0.22, ease: 'power2.out', clearProps: 'transform' },
+    )
+
+    const items = popover.querySelectorAll('li')
+    if (items.length > 0) {
+      gsap.from(items, {
+        y: 6,
+        opacity: 0,
+        duration: 0.22,
+        stagger: 0.035,
+        ease: 'power2.out',
+        clearProps: 'transform',
+      })
+    }
+  }, [showNotifPopover])
+
+  useLayoutEffect(() => {
+    if (prevThemeRef.current === theme) return
+    prevThemeRef.current = theme
+
+    if (!themeIconRef.current) return
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
+
+    gsap.fromTo(
+      themeIconRef.current,
+      { rotate: -45, scale: 0.72, opacity: 0.4 },
+      {
+        rotate: 0,
+        scale: 1,
+        opacity: 1,
+        duration: 0.34,
+        ease: 'back.out(1.8)',
+        clearProps: 'transform',
+      },
+    )
+  }, [theme])
 
   const upcomingDeadlines = opportunities
     .filter((opp) => trackedApplications.some((t) => t.opportunityId === opp.id))
@@ -62,10 +222,10 @@ export function AppShell({ children }: AppShellProps) {
         {/* Main Column */}
         <div className="flex min-w-0 flex-1 flex-col pb-20 lg:pb-0">
           {/* Top Bar: Brand Pill + Centered Navigation Pill Tabs + Right Actions */}
-          <header className="px-4 pb-2 pt-4 sm:px-6 sm:pt-5 lg:px-8">
+          <header ref={headerRef} className="px-4 pb-2 pt-4 sm:px-6 sm:pt-5 lg:px-8">
             <div className="mx-auto flex w-full max-w-[1380px] items-center justify-between gap-3">
               {/* Left Brand Pill */}
-              <div className="flex min-w-0 items-center">
+              <div data-nav="group" className="flex min-w-0 items-center">
                 <button
                   type="button"
                   onClick={() => navigate('/')}
@@ -77,24 +237,36 @@ export function AppShell({ children }: AppShellProps) {
 
               {/* Center Horizontal Pill Tabs (Ref 1 & Ref 2 Signature) */}
               <nav
+                ref={navRef}
+                data-nav="group"
                 aria-label="Primary workspace tabs"
-                className="hidden items-center gap-1 rounded-full border border-[var(--border-subtle)]/80 bg-[var(--bg-card)] p-1 shadow-2xs lg:flex"
+                className="relative hidden items-center gap-1 rounded-full border border-[var(--border-subtle)]/80 bg-[var(--bg-card)] p-1 shadow-2xs lg:flex"
               >
+                <span
+                  ref={indicatorRef}
+                  aria-hidden="true"
+                  className="pointer-events-none absolute bottom-1 left-0 top-1 rounded-full bg-[#191b1e] opacity-0 shadow-xs dark:bg-[#f1f2ea]"
+                />
                 {NAV_ITEMS.map((item) => {
                   const Icon = item.icon
                   return (
                     <NavLink
                       key={item.to}
                       to={item.to}
+                      ref={(el) => {
+                        tabRefs.current[item.to] = el
+                      }}
                       className={({ isActive }) =>
-                        `inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[13px] font-semibold transition-all duration-200 ${
+                        `relative z-10 inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-2 text-[13px] font-semibold transition-colors duration-200 ${
                           isActive
-                            ? 'bg-[#191b1e] text-white shadow-xs dark:bg-[#f1f2ea] dark:text-[#181a18]'
-                            : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)] hover:text-[var(--text-primary)]'
+                            ? 'text-white dark:text-[#181a18]'
+                            : 'text-[var(--text-secondary)] hover:bg-[var(--bg-subtle)]/70 hover:text-[var(--text-primary)]'
                         }`
                       }
                     >
-                      <Icon className="h-3.5 w-3.5 shrink-0" />
+                      <span data-nav-icon={item.to} className="inline-flex">
+                        <Icon className="h-3.5 w-3.5 shrink-0" />
+                      </span>
                       <span>{item.label}</span>
                     </NavLink>
                   )
@@ -102,7 +274,7 @@ export function AppShell({ children }: AppShellProps) {
               </nav>
 
               {/* Right Controls */}
-              <div className="flex shrink-0 items-center gap-2">
+              <div data-nav="group" className="flex shrink-0 items-center gap-2">
                 <div className="relative">
                   <button
                     type="button"
@@ -113,12 +285,15 @@ export function AppShell({ children }: AppShellProps) {
                   >
                     <Bell className="h-4 w-4" />
                     {upcomingDeadlines.length > 0 && (
-                      <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-amber-400 ring-2 ring-[var(--bg-card)]" />
+                      <span className="absolute right-2.5 top-2.5 h-2 w-2 rounded-full bg-[var(--cat-scholarship)] ring-2 ring-[var(--bg-card)]" />
                     )}
                   </button>
 
                   {showNotifPopover && (
-                    <div className="careerku-toast absolute right-0 top-12 z-40 w-80 rounded-2xl p-4">
+                    <div
+                      ref={notifPopoverRef}
+                      className="careerku-toast absolute right-0 top-12 z-40 w-80 rounded-2xl p-4"
+                    >
                       <div className="mb-3 flex items-center justify-between">
                         <span className="text-sm font-semibold text-[var(--text-primary)]">
                           Deadline Reminders
@@ -154,8 +329,8 @@ export function AppShell({ children }: AppShellProps) {
                                 <span
                                   className={`shrink-0 rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                                     item.daysLeft <= 14
-                                      ? 'bg-rose-100 text-rose-700 dark:bg-rose-500/20 dark:text-rose-300'
-                                      : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300'
+                                      ? 'bg-[var(--status-danger-soft)] text-[var(--status-danger-text)]'
+                                      : 'bg-[var(--status-success-soft)] text-[var(--status-success-text)]'
                                   }`}
                                 >
                                   D-{Math.max(0, item.daysLeft)}
@@ -177,7 +352,9 @@ export function AppShell({ children }: AppShellProps) {
                   title={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
                   className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--text-secondary)] shadow-2xs hover:text-[var(--text-primary)]"
                 >
-                  {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                  <span ref={themeIconRef} className="inline-flex">
+                    {theme === 'light' ? <Moon className="h-4 w-4" /> : <Sun className="h-4 w-4" />}
+                  </span>
                 </button>
 
                 {/* Profile Pill */}
@@ -224,7 +401,9 @@ export function AppShell({ children }: AppShellProps) {
                   }`
                 }
               >
-                <Icon className="h-4.5 w-4.5" />
+                <span data-mobile-nav-icon={item.to} className="inline-flex">
+                  <Icon className="h-4.5 w-4.5" />
+                </span>
                 <span>{item.label}</span>
               </NavLink>
             )

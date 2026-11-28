@@ -44,7 +44,7 @@ export function FolderTabs<T extends string>({
             <span
               className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-colors ${
                 isActive
-                  ? 'bg-[#a6aaf7] text-[#1c1e21] dark:bg-[#8085ec] dark:text-[#111311]'
+                  ? 'bg-[#79b49a] text-[#141816] dark:bg-[#54a884] dark:text-[#111311]'
                   : 'bg-[var(--bg-card)] text-[var(--text-muted)] group-hover:text-[var(--text-secondary)]'
               }`}
             >
@@ -58,7 +58,7 @@ export function FolderTabs<T extends string>({
             <span
               className={`inline-flex h-6 min-w-6 items-center justify-center rounded-full px-2 text-xs font-semibold transition-colors ${
                 isActive
-                  ? 'bg-[#a6aaf7] text-[#1c1e21] dark:bg-[#8085ec] dark:text-[#111311]'
+                  ? 'bg-[#79b49a] text-[#141816] dark:bg-[#54a884] dark:text-[#111311]'
                   : 'bg-[var(--bg-card)] text-[var(--text-muted)]'
               }`}
             >

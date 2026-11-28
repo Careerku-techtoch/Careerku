@@ -91,8 +91,8 @@ const STUDENT_VOICES = [
     tag: 'Internships & AI Gap',
     actionLabel: 'Explore Internships',
     to: '/discover',
-    hoverBgClass: '-translate-y-2 border-transparent bg-[#5257e5] text-white shadow-xl shadow-indigo-500/25',
-    hoverBadgeClass: 'bg-white text-[#5257e5]',
+    hoverBgClass: '-translate-y-2 border-transparent bg-[#1e5640] text-white shadow-xl shadow-emerald-950/25',
+    hoverBadgeClass: 'bg-white text-[#1e5640]',
   },
   {
     quote:
@@ -102,8 +102,8 @@ const STUDENT_VOICES = [
     tag: 'Improve Portfolio',
     actionLabel: 'Try AI Skill Gap',
     to: '/analyze',
-    hoverBgClass: '-translate-y-2 border-transparent bg-[#1d1f3a] text-white shadow-xl shadow-indigo-950/25',
-    hoverBadgeClass: 'bg-[#a6aaf7] text-[#1d1f3a]',
+    hoverBgClass: '-translate-y-2 border-transparent bg-[#26332c] text-white shadow-xl shadow-black/25',
+    hoverBadgeClass: 'bg-[#8cd4b5] text-[#18221d]',
   },
   {
     quote:
@@ -417,7 +417,7 @@ export function WelcomePage() {
       >
         {/* Top-Right Circular Brand Emblem Badge (Spintip Signature) */}
         <div className="flex justify-end">
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#191b1e] text-white transition-all duration-300 group-hover:scale-110 group-hover:bg-[#5257e5] dark:bg-[#f1f2ea] dark:text-[#181a18] dark:group-hover:bg-[#8085ec] dark:group-hover:text-white">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#191b1e] text-white transition-all duration-300 group-hover:scale-110 group-hover:bg-[#1e5640] dark:bg-[#f1f2ea] dark:text-[#181a18] dark:group-hover:bg-[#54a884] dark:group-hover:text-white">
             <svg
               viewBox="0 0 48 48"
               fill="none"
@@ -577,7 +577,7 @@ export function WelcomePage() {
         <div aria-hidden="true" className="h-[2px] w-full overflow-hidden">
           <div
             data-gsap="scroll-progress"
-            className="h-full w-full origin-left scale-x-0 bg-[#5257e5] dark:bg-[#a6aaf7]"
+            className="h-full w-full origin-left scale-x-0 bg-[#1e5640] dark:bg-[#72c7a2]"
           />
         </div>
       </header>
@@ -743,7 +743,7 @@ export function WelcomePage() {
                     <span
                       className={`flex h-9 w-9 items-center justify-center rounded-full shadow-2xs transition-all duration-300 ${
                         hoveredCard === 0
-                          ? 'scale-110 bg-white/15 text-[#a6aaf7]'
+                          ? 'scale-110 bg-white/15 text-[#8cd4b5]'
                           : 'bg-[var(--bg-card)] text-[var(--text-primary)]'
                       }`}
                     >
@@ -804,14 +804,14 @@ export function WelcomePage() {
                         : 'Internships, Competitions & Scholarships'}
                     </p>
                     {hoveredCard === 0 && (
-                      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[#a6aaf7]" />
+                      <ArrowRight className="h-3.5 w-3.5 shrink-0 text-[#8cd4b5]" />
                     )}
                   </div>
                 </div>
               </button>
             </div>
 
-            {/* Card 2: 7 Stages -> Same Clean Resting Surface, Shifts to Periwinkle-Indigo on Hover */}
+            {/* Card 2: 7 Stages -> Same Clean Resting Surface, Shifts to Botanical Forest on Hover */}
             <div data-gsap="feature-card">
               <button
                 type="button"
@@ -820,7 +820,7 @@ export function WelcomePage() {
                 onClick={() => navigate('/analyze')}
                 className={`group relative flex min-h-[235px] w-full cursor-pointer flex-col justify-between overflow-hidden rounded-[26px] border p-6 text-left transition-all duration-300 ease-out ${
                   hoveredCard === 1
-                    ? '-translate-y-2 border-transparent bg-[#5257e5] text-white shadow-xl shadow-indigo-500/25'
+                    ? '-translate-y-2 border-transparent bg-[#1e5640] text-white shadow-xl shadow-emerald-950/25'
                     : 'border-[var(--border-subtle)] bg-[var(--bg-sheet)] text-[var(--text-primary)]'
                 }`}
               >
@@ -842,7 +842,7 @@ export function WelcomePage() {
                   <span
                     className={`flex h-10 w-10 items-center justify-center rounded-full border transition-all duration-300 ${
                       hoveredCard === 1
-                        ? 'rotate-12 scale-110 border-white/30 bg-white text-[#5257e5]'
+                        ? 'rotate-12 scale-110 border-white/30 bg-white text-[#1e5640]'
                         : 'border-[var(--border-subtle)] bg-[var(--bg-card)] text-[var(--accent-indigo)]'
                     }`}
                   >
@@ -862,7 +862,7 @@ export function WelcomePage() {
                   <div
                     className={`mt-3 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold transition-all duration-300 ${
                       hoveredCard === 1
-                        ? 'translate-y-0 bg-white text-[#5257e5] opacity-100'
+                        ? 'translate-y-0 bg-white text-[#1e5640] opacity-100'
                         : 'translate-y-2 bg-[var(--bg-card)] text-[var(--text-primary)] opacity-0'
                     }`}
                   >
@@ -873,7 +873,7 @@ export function WelcomePage() {
               </button>
             </div>
 
-            {/* Card 3: AI + OCR -> Transforms to Deep Indigo-Midnight on Hover */}
+            {/* Card 3: AI + OCR -> Transforms to Deep Olive-Charcoal on Hover */}
             <div data-gsap="feature-card">
               <button
                 type="button"
@@ -882,7 +882,7 @@ export function WelcomePage() {
                 onClick={() => navigate('/analyze')}
                 className={`group relative flex min-h-[235px] w-full cursor-pointer flex-col justify-between overflow-hidden rounded-[26px] border p-6 text-left transition-all duration-300 ease-out ${
                   hoveredCard === 2
-                    ? '-translate-y-2 border-transparent bg-[#1d1f3a] text-white shadow-xl shadow-indigo-950/25'
+                    ? '-translate-y-2 border-transparent bg-[#26332c] text-white shadow-xl shadow-black/25'
                     : 'border-[var(--border-subtle)] bg-[var(--bg-sheet)] text-[var(--text-primary)]'
                 }`}
               >
@@ -897,7 +897,7 @@ export function WelcomePage() {
                   <span
                     className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
                       hoveredCard === 2
-                        ? 'bg-[#a6aaf7] text-[#1d1f3a] opacity-100'
+                        ? 'bg-[#8cd4b5] text-[#18221d] opacity-100'
                         : 'bg-[var(--bg-card)] text-[var(--text-muted)] opacity-0'
                     }`}
                   >
@@ -921,8 +921,8 @@ export function WelcomePage() {
                   <span
                     className={`rounded-2xl px-3 py-2 text-xs font-bold transition-all duration-300 ${
                       hoveredCard === 2
-                        ? 'scale-105 bg-[#a6aaf7] text-[#1c1e21]'
-                        : 'bg-[#dfe2ff] text-[#4f54d8] dark:bg-[#a6aaf7]/20 dark:text-[#b4b8ff]'
+                        ? 'scale-105 bg-[#8cd4b5] text-[#18221d]'
+                        : 'bg-[#dfece5] text-[#1e5640] dark:bg-[#72c7a2]/20 dark:text-[#8cd4b5]'
                     }`}
                   >
                     AI + OCR
@@ -1010,7 +1010,7 @@ export function WelcomePage() {
                 aria-hidden="true"
                 className="h-9 w-9 rounded-full bg-[#191b1e] dark:bg-[#f1f2ea]"
               />
-              <span className="inline-flex h-9 items-center rounded-full bg-[#191b1e] px-5 text-sm font-medium tracking-tight text-[#e3e6ff] dark:bg-[#f1f2ea] dark:text-[#181a18]">
+              <span className="inline-flex h-9 items-center rounded-full bg-[#191b1e] px-5 text-sm font-medium tracking-tight text-[#dfece5] dark:bg-[#f1f2ea] dark:text-[#181a18]">
                 How It Works
               </span>
             </div>
