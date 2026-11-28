@@ -42,8 +42,8 @@ export const Scene1Intro: React.FC = () => {
     easing: EASE_OUT_EXPO,
   });
 
-  // Exit fade out at end of 3s intro scene
-  const exitOpacity = interpolate(frame, [160, 180], [1, 0], {
+  // Exit fade out at end of 2.75s intro scene
+  const exitOpacity = interpolate(frame, [145, 165], [1, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });

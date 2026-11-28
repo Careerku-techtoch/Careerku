@@ -94,16 +94,16 @@ export const Scene4Discover: React.FC = () => {
   // Highlight High Match pill toggle at frame 150
   const highMatchActive = frame >= 150;
 
-  // Floating Card Pop-Out (frame 285+ across 660f = 11s scene)
+  // Floating Card Pop-Out (frame 255+ across 600f = 10s scene)
   const popOut = spring({
-    frame: frame - 285,
+    frame: frame - 255,
     fps,
     config: { damping: 14, stiffness: 115 },
   });
 
   // Right vertical label ("Matched to Your Profile")
   const rightLabelProgress = spring({
-    frame: frame - 310,
+    frame: frame - 280,
     fps,
     config: { damping: 16, stiffness: 130 },
   });

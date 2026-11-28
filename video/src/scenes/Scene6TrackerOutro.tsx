@@ -31,8 +31,8 @@ export const Scene6TrackerOutro: React.FC = () => {
     config: { damping: 16, stiffness: 130 },
   });
 
-  // Gradient Wipe Outro starts at frame 420 (7.0s) and holds cleanly for 5.0s until frame 720
-  const wipeProgress = interpolate(frame, [420, 468], [0, 1], {
+  // Gradient Wipe Outro starts at frame 380 (6.33s) and holds cleanly for 4.67s until frame 660
+  const wipeProgress = interpolate(frame, [380, 428], [0, 1], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
     easing: EASE_IN_OUT_SMOOTH,
@@ -41,7 +41,7 @@ export const Scene6TrackerOutro: React.FC = () => {
   const wipeX = interpolate(wipeProgress, [0, 1], [1920, 0]);
 
   const outroContent = spring({
-    frame: frame - 460,
+    frame: frame - 420,
     fps,
     config: { damping: 15, stiffness: 120 },
   });

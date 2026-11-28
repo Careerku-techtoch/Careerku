@@ -1,20 +1,14 @@
 import React from 'react';
-import {
-  AbsoluteFill,
-  OffthreadVideo,
-  interpolate,
-  spring,
-  staticFile,
-  useCurrentFrame,
-  useVideoConfig,
-} from 'remotion';
+import { AbsoluteFill, interpolate, spring, useCurrentFrame, useVideoConfig } from 'remotion';
+import { ConfusedStudentsRig } from '../components/ConfusedStudentsRig';
 import { COLORS, EASE_OUT_EXPO, POPPINS_FONT, TEXT_SHADOW_SOFT } from '../theme';
 
 /**
- * Scene 2 (8.25s = 495 frames @ 60fps):
- * Uses the user's uploaded animated video (intro-student.mp4) as the opening visual hook.
- * - 0:00–0:03 (frames 0–180): Student typing & celebrating at desk -> right-column text
- * - 0:03–0:08.25 (frames 180–495): Student standing with trophy/briefcase/verified stream -> right-side headline + floating pills
+ * Scene 2 (10.0s = 600 frames @ 60fps):
+ * Bikun-style clean layout:
+ * - Animated confused students rig CENTERED (head scratching, shrugging, blinking, floating icons)
+ * - ZERO badges, ZERO small pills, ZERO subtext bars
+ * - Pure BIG BOLD Poppins typography on the LEFT and RIGHT
  */
 export const Scene2Hook: React.FC = () => {
   const frame = useCurrentFrame();
@@ -25,246 +19,112 @@ export const Scene2Hook: React.FC = () => {
     extrapolateRight: 'clamp',
   });
 
-  const exitOpacity = interpolate(frame, [475, 495], [1, 0], {
+  const exitOpacity = interpolate(frame, [576, 600], [1, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
 
-  // Part A text (over 0:00–0:03 while student sits at desk on left)
-  const partAIn = spring({
-    frame: frame - 18,
+  // Left big bold question appears first
+  const leftTextIn = spring({
+    frame: frame - 26,
     fps,
-    config: { damping: 16, stiffness: 130 },
-  });
-  const partAOut = interpolate(frame, [156, 178], [1, 0], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp',
+    config: { damping: 16, stiffness: 120 },
   });
 
-  // Part B text (over 0:03–0:08.25 while student stands with trophy/briefcase/verified stream)
-  const partB1 = spring({
-    frame: frame - 196,
+  // Right big bold follow-up appears cleanly after ~2.8s
+  const rightTextIn = spring({
+    frame: frame - 195,
     fps,
-    config: { damping: 16, stiffness: 125 },
-  });
-  const partB2 = spring({
-    frame: frame - 265,
-    fps,
-    config: { damping: 16, stiffness: 125 },
-  });
-
-  const floatA = Math.sin(frame * 0.075) * 5;
-  const floatB = Math.cos(frame * 0.068) * 5;
-  const floatC = Math.sin(frame * 0.082 + 1.2) * 5;
-
-  const streamPills = [
-    {
-      label: 'Competitions',
-      left: 725,
-      top: 605,
-      delay: 215,
-      dy: floatA,
-      border: '#f5d08a',
-      fg: COLORS.midnight,
-      dot: '#f59e0b',
-    },
-    {
-      label: 'Internships',
-      left: 910,
-      top: 112,
-      delay: 235,
-      dy: floatB,
-      border: COLORS.indigoSoft,
-      fg: COLORS.midnight,
-      dot: COLORS.indigo,
-    },
-    {
-      label: 'Scholarships',
-      left: 1300,
-      top: 180,
-      delay: 255,
-      dy: floatC,
-      border: COLORS.emeraldSoft,
-      fg: COLORS.emerald,
-      dot: COLORS.emeraldBright,
-    },
-  ];
-
-  // Soft audio fade-out at end of clip
-  const videoVolume = interpolate(frame, [0, 20, 440, 490], [0, 0.55, 0.55, 0], {
-    extrapolateLeft: 'clamp',
-    extrapolateRight: 'clamp',
+    config: { damping: 16, stiffness: 120 },
   });
 
   return (
     <AbsoluteFill
       style={{
-        backgroundColor: COLORS.bgCream,
+        backgroundColor: '#fdfcf3',
         fontFamily: POPPINS_FONT,
         opacity: enterOpacity * exitOpacity,
+        justifyContent: 'center',
+        alignItems: 'center',
         overflow: 'hidden',
       }}
     >
-      {/* Uploaded Student Animation Clip */}
-      <AbsoluteFill>
-        <OffthreadVideo
-          src={staticFile('intro-student.mp4')}
-          volume={videoVolume}
-          style={{
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-          }}
-        />
-      </AbsoluteFill>
+      {/* Subtle geometric background accents matching the Careerku illustration style */}
+      <svg
+        width="1920"
+        height="1080"
+        viewBox="0 0 1920 1080"
+        style={{ position: 'absolute', inset: 0, pointerEvents: 'none' }}
+      >
+        <circle cx="110" cy="70" r="145" stroke="#dcdff2" strokeWidth="3" fill="none" />
+        <rect x="0" y="180" width="46" height="190" fill="#e6e7f7" opacity="0.7" />
+        <rect x="1710" y="0" width="210" height="170" fill="#e8eaf8" opacity="0.6" />
+        <circle cx="1710" cy="200" r="56" stroke="#d5d8ee" strokeWidth="3" fill="none" />
+        <rect x="1790" y="740" width="130" height="340" fill="#e5e8f8" opacity="0.6" />
+        <circle cx="1440" cy="1080" r="150" stroke="#dcdff2" strokeWidth="3" fill="none" />
+      </svg>
 
-      {/* Part A Typography (frames 0–180): cleanly in the open cream wall on the right */}
+      {/* CENTER: Live Animated Confused Students Rig (anchored waist-up to bottom edge) */}
+      <div
+        style={{
+          position: 'relative',
+          transform: 'translateY(165px) scale(1.14)',
+          zIndex: 2,
+        }}
+      >
+        <ConfusedStudentsRig />
+      </div>
+
+      {/* LEFT: Big Bold Core Problem Headline (Pure Poppins, No Pills) */}
       <div
         style={{
           position: 'absolute',
-          right: 90,
-          top: 310,
-          width: 600,
-          opacity: partAIn * partAOut,
-          transform: `translateY(${interpolate(partAIn, [0, 1], [30, 0], { easing: EASE_OUT_EXPO })}px)`,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'flex-start',
-          gap: 18,
+          left: 72,
+          top: 290,
+          width: 495,
+          opacity: leftTextIn,
+          transform: `translateY(${interpolate(leftTextIn, [0, 1], [36, 0], { easing: EASE_OUT_EXPO })}px)`,
+          fontSize: 56,
+          fontWeight: 700,
+          lineHeight: 1.15,
+          letterSpacing: '-0.028em',
+          color: COLORS.emerald,
+          textShadow: TEXT_SHADOW_SOFT,
+          zIndex: 4,
         }}
       >
-        <div
-          style={{
-            backgroundColor: COLORS.emeraldSoft,
-            color: COLORS.emerald,
-            padding: '8px 18px',
-            borderRadius: 999,
-            fontSize: 16,
-            fontWeight: 700,
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-          }}
-        >
-          Every Student&apos;s Goal
-        </div>
-        <div
-          style={{
-            fontSize: 54,
-            fontWeight: 700,
-            lineHeight: 1.14,
-            letterSpacing: '-0.025em',
-            color: COLORS.midnight,
-            textShadow: TEXT_SHADOW_SOFT,
-          }}
-        >
-          Dreaming of your
-          <br />
-          next big break?
-        </div>
+        Hard to find
+        <br />
+        internships,
+        <br />
+        competitions,
+        <br />
+        &amp; scholarships?
       </div>
 
-      {/* Part B Floating Category Pills (frames 195–495) */}
-      {frame >= 195 &&
-        streamPills.map((pill) => {
-          const pop = spring({
-            frame: frame - pill.delay,
-            fps,
-            config: { damping: 13, stiffness: 170 },
-          });
-          return (
-            <div
-              key={pill.label}
-              style={{
-                position: 'absolute',
-                left: pill.left,
-                top: pill.top,
-                transform: `translateY(${pill.dy}px) scale(${pop})`,
-                backgroundColor: '#ffffff',
-                border: `1.5px solid ${pill.border}`,
-                color: pill.fg,
-                padding: '8px 18px',
-                borderRadius: 999,
-                fontSize: 17,
-                fontWeight: 700,
-                letterSpacing: '-0.01em',
-                boxShadow: '0 10px 24px rgba(28, 30, 33, 0.08)',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 9,
-              }}
-            >
-              <span
-                style={{
-                  width: 9,
-                  height: 9,
-                  borderRadius: '50%',
-                  backgroundColor: pill.dot,
-                }}
-              />
-              {pill.label}
-            </div>
-          );
-        })}
-
-      {/* Part B Typography (frames 195–495): right open area below the icons */}
-      {frame >= 188 && (
-        <>
-          <div
-            style={{
-              position: 'absolute',
-              right: 0,
-              bottom: 0,
-              width: 1120,
-              height: 700,
-              background:
-                'radial-gradient(ellipse at 74% 68%, rgba(253, 252, 243, 0.90) 0%, rgba(253, 252, 243, 0.55) 55%, rgba(253, 252, 243, 0) 85%)',
-              pointerEvents: 'none',
-            }}
-          />
-          <div
-            style={{
-              position: 'absolute',
-              left: 930,
-              top: 430,
-              width: 880,
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 24,
-            }}
-          >
-            <div
-              style={{
-                opacity: partB1,
-                transform: `translateY(${interpolate(partB1, [0, 1], [32, 0], { easing: EASE_OUT_EXPO })}px)`,
-                fontSize: 56,
-                fontWeight: 700,
-                lineHeight: 1.14,
-                letterSpacing: '-0.025em',
-                color: COLORS.emerald,
-                textShadow: TEXT_SHADOW_SOFT,
-              }}
-            >
-              Top internships,
-              <br />
-              national competitions,
-              <br />
-              &amp; dream scholarships.
-            </div>
-            <div
-              style={{
-                opacity: partB2,
-                transform: `translateY(${interpolate(partB2, [0, 1], [24, 0], { easing: EASE_OUT_EXPO })}px)`,
-                fontSize: 32,
-                fontWeight: 600,
-                color: COLORS.midnight,
-                letterSpacing: '-0.015em',
-              }}
-            >
-              Everything you need to level up your career.
-            </div>
-          </div>
-        </>
-      )}
+      {/* RIGHT: Big Bold Follow-Up Headline (Pure Poppins, No Pills) */}
+      <div
+        style={{
+          position: 'absolute',
+          right: 72,
+          top: 390,
+          width: 485,
+          textAlign: 'right',
+          opacity: rightTextIn,
+          transform: `translateY(${interpolate(rightTextIn, [0, 1], [36, 0], { easing: EASE_OUT_EXPO })}px)`,
+          fontSize: 56,
+          fontWeight: 700,
+          lineHeight: 1.15,
+          letterSpacing: '-0.028em',
+          color: COLORS.midnight,
+          textShadow: TEXT_SHADOW_SOFT,
+          zIndex: 4,
+        }}
+      >
+        Lost in endless
+        <br />
+        chats &amp; feeds?
+      </div>
     </AbsoluteFill>
   );
 };

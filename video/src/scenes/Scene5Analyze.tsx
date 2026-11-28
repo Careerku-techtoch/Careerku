@@ -42,7 +42,7 @@ export const Scene5Analyze: React.FC = () => {
   const line2 = spring({ frame: frame - 160, fps, config: { damping: 16, stiffness: 130 } });
   const line3 = spring({ frame: frame - 250, fps, config: { damping: 16, stiffness: 130 } });
 
-  const exitFade = interpolate(frame, [575, 600], [1, 0], {
+  const exitFade = interpolate(frame, [545, 570], [1, 0], {
     extrapolateLeft: 'clamp',
     extrapolateRight: 'clamp',
   });
